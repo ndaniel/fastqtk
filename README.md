@@ -1,5 +1,6 @@
 # fastq-leave
-FASTQ file (de)interleave tools
+FASTQ (de)interleave tools
+--------------------------
 
 *fastq-leave* is a fast and lightweight tool for interleaving and deinterleavng FASTQ files.
 
