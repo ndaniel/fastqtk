@@ -7,7 +7,7 @@ Installation
 ------------
 
 ```
-git clone https://github.com/ndaniel/fastq-leave.git;
+git clone https://github.com/ndaniel/fastq-leave.git
 cd fastq-leave
 make
 ```
