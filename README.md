@@ -1,4 +1,3 @@
-# fastq-leave
 FASTQ (de)interleave tools
 --------------------------
 
