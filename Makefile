@@ -3,7 +3,7 @@ CFLAGS=-g -Wall -O2 -Wno-unused-function
 
 all:fastq-leave
 
-fastq-unshuffle:fastq-leave.c
+fastq-leave:fastq-leave.c
 		$(CC) $(CFLAGS) fastq-leave.c -o $@ -lz -lm
 
 clean:
