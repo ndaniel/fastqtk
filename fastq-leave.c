@@ -351,7 +351,7 @@ int main(int argc, char * argv[])
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastq-leave <command> <arguments>\n");
-        fprintf(stderr, "Version: 0.19\n\n");
+        fprintf(stderr, "Version: 0.20\n\n");
         fprintf(stderr, "Command: interleave        interleaves two paired-end FASTQ files.\n");
         fprintf(stderr, "         deinterleave      splits an (already) interleaved FASTQ file.\n");
         fprintf(stderr, "         count             counts all reads from a FASTQ file.\n");
@@ -2669,6 +2669,9 @@ int main(int argc, char * argv[])
         
         
         DIGITS = (char) (ceil(log10(N+1) / log10(CARS_LEN)));
+        if (interleaved == 1) {
+            DIGITS = (char) (ceil((log10(N) - log10(2))/ log10(CARS_LEN)));
+        }
 
         is_stdin = 0;
         if (strcmp(argv[4],"-")==0) {
