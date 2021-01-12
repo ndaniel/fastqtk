@@ -351,7 +351,7 @@ int main(int argc, char * argv[])
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastq-leave <command> <arguments>\n");
-        fprintf(stderr, "Version: 0.18\n\n");
+        fprintf(stderr, "Version: 0.19\n\n");
         fprintf(stderr, "Command: interleave        interleaves two paired-end FASTQ files.\n");
         fprintf(stderr, "         deinterleave      splits an (already) interleaved FASTQ file.\n");
         fprintf(stderr, "         count             counts all reads from a FASTQ file.\n");
@@ -792,6 +792,8 @@ int main(int argc, char * argv[])
     LENGTHS
     */
     if (usage == 5) {
+    
+        
         is_stdin = 0;
         if (strcmp(argv[2],"-")==0) {
             fip = stdin;
@@ -859,7 +861,6 @@ int main(int argc, char * argv[])
                     }
                 }
             }
-            
             if (flag == 1) {
                 flag = 0;
                 i = bytes_read;
@@ -871,11 +872,14 @@ int main(int argc, char * argv[])
             }
             
         }
-        
-        for (i=MAX_LEN-1;-1<i;i--) {
+
+        for (i=MAX_LEN-1;i>0;i--) {
             if (len[i] != 0) {
                 fprintf(fop,"%ld\n",i-windows);
             }
+        }
+        if (len[0] != 0 && windows == 0) {
+            fprintf(fop,"0\n");
         }
         
         if (is_stdin == 0) {
@@ -982,12 +986,15 @@ int main(int argc, char * argv[])
         }
         fprintf(fr1,"%lld",u);
         
-        for (i=MAX_LEN-1;-1<i;i--) {
+        for (i=MAX_LEN-1;i>0;i--) {
             if (len[i] != 0) {
                 fprintf(fr2,"%ld\n",i-windows);
             }
         }
-        
+        if (len[0] != 0 && windows == 0) {
+            fprintf(fr2,"0\n");
+        }
+
         if (is_stdin == 0) {
             fclose(fip);
         }
