@@ -26,12 +26,74 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
-char const SIZE_OF_CHAR = sizeof(char);
-int const BUFFER_SIZE = 32 * 1024 * 1024;
-//unsigned int BUFFER_SIZE = 2 * 1024 * 1024;
-int const MAX_LEN = 32*1024 ; //maximum length of reads
+const char SIZE_OF_CHAR = sizeof(char);
+const long int BUFFER_SIZE = 32 * 1024 * 1024;
+//long int const BUFFER_SIZE = 3731;
+const long int MAX_LEN = 32*1024 ; //maximum length of reads
 
+
+////////////////////////////////////////////////////////////////////////////////
+const char CARS[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const int CARS_LEN = strlen(CARS);
+
+char toCARS[256];
+
+char DIGITS = 0;
+
+char COUNTER[] = "----------------------------------------------------";
+int COUNTER_LEN_MAX;
+int COUNTER_LEN;
+
+char EXTRA[100] = "\n";
+
+void nextid(void) {
+    
+    int n;
+    char x;
+    int i;
+    
+    if(COUNTER[0]!='@') {
+        // first call -- initialize 
+        COUNTER_LEN_MAX = strlen(COUNTER);
+        
+        for (i=0;i<256;i++) {
+            toCARS[i] = 0;
+        }
+        for (i=0;i<CARS_LEN;i++) {
+            toCARS[(int)CARS[i]] = (char) i + 1;
+        }
+        
+        for (i=1;i<DIGITS+1;i++) {
+            COUNTER[i] = CARS[0];
+        }
+        n = strlen(EXTRA);
+        if (n == 1) {
+            COUNTER[i] = 10; // newline
+            COUNTER_LEN = DIGITS + 2;
+        } else if (n == 3 || n == 2) {
+            COUNTER[i++] = EXTRA[0];
+            COUNTER[i++] = EXTRA[1];
+            COUNTER[i] = 10; //newline
+            COUNTER_LEN = DIGITS + 4;
+        }
+        COUNTER[0] = (int) '@';
+    } else {
+
+        for (i=DIGITS;i>0;i--) {
+            x = toCARS[(int)COUNTER[i]];
+            if (x==CARS_LEN) {
+                COUNTER[i] = CARS[0];
+            } else {
+                COUNTER[i] = CARS[(int)x];
+                break;
+            }
+        }
+
+    }
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 FILE* myfopen(char* filename, char* mode) {
@@ -78,9 +140,10 @@ int main(int argc, char * argv[])
     char windows = 0;
     
 
-    size_t  bytes_read,bytes_read1,bytes_read2;
-    long int i,j,k,b1i,b2i,l;
-    long int j1,j2,k1,k2,k1old,k2old;
+    size_t  bytes_read,bytes_read1,bytes_read2,x;
+    size_t  i,j,k,b1i,b2i,l;
+    size_t j1,j2,k1,k2,k1old,k2old;
+    long int threshold,trim,retain;
 
     FILE *fip, *fr1, *fr2;
     FILE *fop, *fi1p, *fi2p;
@@ -91,7 +154,7 @@ int main(int argc, char * argv[])
         if (strcmp(argv[1],"deinterleave") == 0) {
             if (argc != 5) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave deinterleave <in.fq> <out1.fq> <out2.fq>\n\n");
+                fprintf(stderr, "Usage:   fastq-leave  deinterleave  <in.fq>  <out1.fq>  <out2.fq>\n\n");
                 fprintf(stderr, "It splits an interleaved input FASTQ file into two paired-end FASTQ files.\n");
                 fprintf(stderr, "For input from STDIN use - instead of <in.fq>.\n\n");
                 return 1;
@@ -101,7 +164,7 @@ int main(int argc, char * argv[])
         } else if (strcmp(argv[1],"interleave") == 0) {
             if (argc != 5) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave interleave <in1.fq> <in2.fq> <out.fq>\n\n");
+                fprintf(stderr, "Usage:   fastq-leave  interleave  <in1.fq>  <in2.fq>  <out.fq>\n\n");
                 fprintf(stderr, "It interleaves two input paired-end FASTQ files into one output FASTQ file.\n");
                 fprintf(stderr, "For redirecting output to STDOUT use - instead of <out.fq>.\n\n");
                 return 1;
@@ -111,9 +174,9 @@ int main(int argc, char * argv[])
         } else if (strcmp(argv[1],"count") == 0) {
             if (argc != 4) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave count <in.fq> <out.txt>\n\n");
-                fprintf(stderr, "It counts the number of reads from an input FASTQ file and outputs it to a text file.\n");
-                fprintf(stderr, "For redirecting output to STDOUT/STDIN use - instead of file name.\n\n");
+                fprintf(stderr, "Usage:   fastq-leave  count  <in.fq>  <out.txt>\n\n");
+                fprintf(stderr, "It provides the total number of reads from an input FASTQ file and outputs it to a text file.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
                 return 1;
             } else {
                 usage = 4;
@@ -121,10 +184,10 @@ int main(int argc, char * argv[])
         } else if (strcmp(argv[1],"lengths") == 0) {
             if (argc != 4) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave lengths <in.fq> <out.txt>\n\n");
+                fprintf(stderr, "Usage:   fastq-leave  lengths  <in.fq>  <out.txt>\n\n");
                 fprintf(stderr, "It provides a summary statistics regarding the lengths of the reads from an input FASTQ file and outputs it to a text file.\n");
                 fprintf(stderr, "The output text file contains the unique lengths of the reads found in the input file, which are sorted in descending order.\n");
-                fprintf(stderr, "For redirecting output to STDOUT/STDIN use - instead of file name.\n\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
                 return 1;
             } else {
                 usage = 5;
@@ -132,8 +195,8 @@ int main(int argc, char * argv[])
         } else if (strcmp(argv[1],"count-lengths") == 0) {
             if (argc != 5) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave count-lengths <in.fq> <count.txt> <statistics.txt>\n\n");
-                fprintf(stderr, "It provides a summary statistics regarding the lengths of the reads from an input FASTQ file and outputs it to a text file.\n");
+                fprintf(stderr, "Usage:   fastq-leave  count-lengths  <in.fq>  <count.txt>  <statistics.txt>\n\n");
+                fprintf(stderr, "It provides total number of reads and a summary statistics regarding the lengths of the reads from an input FASTQ file and outputs it to a text file.\n");
                 return 1;
             } else {
                 usage = 6;
@@ -141,9 +204,9 @@ int main(int argc, char * argv[])
         } else if (strcmp(argv[1],"tab4") == 0) {
             if (argc != 4) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave tab4 <in.fq> <fastq.txt>\n\n");
+                fprintf(stderr, "Usage:   fastq-leave  tab4  <in.fq>  <fastq.txt>\n\n");
                 fprintf(stderr, "It converts a FASTQ file into a tab-delimited text file with four columns.\n");
-                fprintf(stderr, "For redirecting output to STDOUT/STDIN use - instead of file name.\n\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
                 return 1;
             } else {
                 usage = 7;
@@ -151,9 +214,9 @@ int main(int argc, char * argv[])
         } else if (strcmp(argv[1],"tab8") == 0) {
             if (argc != 4) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave tab8 <in.fq> <fastq.txt>\n\n");
-                fprintf(stderr, "It converts an interleaved FASTQ file into a tab-delimited text file with 8 columns.\n");
-                fprintf(stderr, "For redirecting output to STDOUT/STDIN use - instead of file name.\n\n");
+                fprintf(stderr, "Usage:   fastq-leave  tab8  <in.fq>  <fastq.txt>\n\n");
+                fprintf(stderr, "It converts an interleaved paired-end FASTQ file into a tab-delimited text file with 8 columns.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
                 return 1;
             } else {
                 usage = 8;
@@ -161,27 +224,157 @@ int main(int argc, char * argv[])
         } else if (strcmp(argv[1],"detab") == 0) {
             if (argc != 4) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastq-leave detab <fastq.txt> <out.fq>\n\n");
-                fprintf(stderr, "It converts a 4 or 8 columns tab-delimited text file into a FASTQ file.\n");
-                fprintf(stderr, "For redirecting output to STDOUT/STDIN use - instead of file name.\n\n");
+                fprintf(stderr, "Usage:   fastq-leave  detab  <fastq.txt>  <out.fq>\n\n");
+                fprintf(stderr, "It converts a 4 or 8 columns text tab-delimited file into a FASTQ file.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
                 return 1;
             } else {
                 usage = 9;
+            }
+        } else if (strcmp(argv[1],"drop-short") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  drop-short  <N>  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It drops the reads that have the sequences stricly shorter than N. N is a non-zero positive integer.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 10;
+            }
+        } else if (strcmp(argv[1],"NtoA") == 0) {
+            if (argc != 4) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  NtoA  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It replaces all the As from reads sequences with As in a FASTQ file.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 11;
+            }
+        } else if (strcmp(argv[1],"trim5") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  trim5  <N>  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It trims N nucleotides from 5' end of the reads from a FASTQ file. N is a non-zero positive integer.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 12;
+            }
+        } else if (strcmp(argv[1],"trim3") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  trim3  <N>  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It trims N nucleotides from 3' end of the reads from a FASTQ file. N is a non-zero positive integer.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 13;
+            }
+        } else if (strcmp(argv[1],"retain5") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  retain5  <N>  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It retains the first N nucleotides from 5' end of the reads from a FASTQ file. N is a non-zero positive integer.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 14;
+            }
+        } else if (strcmp(argv[1],"retain3") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  retain3  <N>  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It retains the last N nucleotides from 3' end of the reads from a FASTQ file. N is a non-zero positive integer.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 15;
+            }
+        } else if (strcmp(argv[1],"trim-id") == 0) {
+            if (argc != 4) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  trim-id  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It retains the beginning part of the reads ids all the way to the first blank space or newline. Basically the reads ids are\n");
+                fprintf(stderr, "truncated after the first blank space if they have one.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 16;
+            }
+        } else if (strcmp(argv[1],"trim-N") == 0) {
+            if (argc != 4) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  trim-N  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It trims one or more Ns from both ends of the reads sequences from a FASTQ file.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 17;
+            }
+        } else if (strcmp(argv[1],"trim-polyA") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  trim-polyA  <N>  <in.fq>  <out.fq>\n\n");
+
+                fprintf(stderr, "It trims polyA (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 18;
+            }
+        } else if (strcmp(argv[1],"compress-id") == 0) {
+            if (argc != 6) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastq-leave  compress-id  </1|_1|/2|_2|/12|_12|@|@@>  <N|counts.txt>  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It does lossy compression on the reads ids from a FASTQ file.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                fprintf(stderr, "Options:   N|counts.txt              (count reads; if here is a dot then it is considered that a file has been given)\n");
+                fprintf(stderr, "               N             - number of reads in the input FASTQ file <in.fq>. N is an positive integer.\n");
+                fprintf(stderr, "               counts.txt    - file that contains number of reads in the input FASTQ file <in.fq>, that was generated\n");
+                fprintf(stderr, "                               using 'fastq-leave count in.fq counts.txt' beforehand.\n");
+                fprintf(stderr, "           /1|_1|/2|_2|/12|_12|@|@@   (reads ids settings)\n");
+                fprintf(stderr, "               /1            - adds /1 to the end of the reads ids. (Here the input FASTQ file is NOT interleaved)\n");
+                fprintf(stderr, "               /2            - adds /2 to the end of the reads ids. (Here the input FASTQ file is NOT interleaved)\n");
+                fprintf(stderr, "               /1            - adds /1 and /2 to the end of the reads ids. Here the input FASTQ file is INTERLEAVED.\n");
+                fprintf(stderr, "               _1            - adds _1 to the end of the reads ids. (Here the input FASTQ file is NOT interleaved)\n");
+                fprintf(stderr, "               _2            - adds _2 to the end of the reads ids. (Here the input FASTQ file is NOT interleaved)\n");
+                fprintf(stderr, "               _12           - adds _1 and _2 to the end of the reads ids. Here the input FASTQ file is INTERLEAVED.\n");
+                fprintf(stderr, "               @             - does NOT add /1 and /2 to the end of the reads ids. (Here the input FASTQ file is NOT interleaved)\n");
+                fprintf(stderr, "               @@            - does NOT add /1 and /2 to the end of the reads ids. Here the input FASTQ file is INTERLEAVED).\n\n");
+                return 1;
+            } else {
+                usage = 19;
             }
         }
     }
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastq-leave <command> <arguments>\n");
-        fprintf(stderr, "Version: 0.16\n\n");
-        fprintf(stderr, "Command: interleave        interleave two paired-end FASTQ files.\n");
-        fprintf(stderr, "         deinterleave      splits one (and already) interleaved FASTQ file.\n");
-        fprintf(stderr, "         count             count number of reads from a FASTQ file.\n");
+        fprintf(stderr, "Version: 0.18\n\n");
+        fprintf(stderr, "Command: interleave        interleaves two paired-end FASTQ files.\n");
+        fprintf(stderr, "         deinterleave      splits an (already) interleaved FASTQ file.\n");
+        fprintf(stderr, "         count             counts all reads from a FASTQ file.\n");
         fprintf(stderr, "         lengths           summary statistics for lengths of reads from a FASTQ file.\n");
-        fprintf(stderr, "         count-lengths     count number of reads and provide summary statistics for lengths of reads from a FASTQ file.\n");
-        fprintf(stderr, "         tab4              converts a FASTQ file to 4-columns tab-delimited text file.\n");
-        fprintf(stderr, "         tab8              converts a (interleaved) FASTQ file to 8-columns tab-delimited text file.\n");
-        fprintf(stderr, "         detab             converts a 4/8-columns tab-delimited text file (which was converted using tab4 or tab8) to FASTQ file.\n");
+        fprintf(stderr, "         count-lengths     number of reads and summary statistics for lengths of reads from a FASTQ file.\n");
+        fprintf(stderr, "         tab4              converts a FASTQ file to a text tab-delimited file with 4 columns.\n");
+        fprintf(stderr, "         tab8              converts a (interleaved paired-end) FASTQ file to text tab-delimited file with 8 columns.\n");
+        fprintf(stderr, "         detab             converts a text tab-delimited file with 4 or 8 columns (which was converted using tab4 or tab8) to FASTQ file.\n");
+        fprintf(stderr, "         drop-short        drops reads that have short sequences (below a given threshold).\n");
+        fprintf(stderr, "         NtoA              replaces all Ns in reads sequences with As in a FASTQ file.\n");
+        fprintf(stderr, "         trim5             trims 5' end of the reads from a FASTQ file.\n");
+        fprintf(stderr, "         trim3             trims 3' end of the reads from a FASTQ file.\n");
+        fprintf(stderr, "         retain5           retains the first N bp from 5'end of the reads from a FASTQ file.\n");
+        fprintf(stderr, "         retain3           retains the last N bp from 3'end of the reads from a FASTQ file.\n");
+        fprintf(stderr, "         trim-id           trims the reads ids from a FASTQ file from the end to the first blank in the string.\n");
+        fprintf(stderr, "         trim-N            trim N at both ends of the reads from a FASTQ file.\n");
+        fprintf(stderr, "         trim-polyA        trim polyA at both ends of the reads from a FASTQ file.\n");
+        fprintf(stderr, "         compress-id       lossy compression of the reads ids from a FASTQ file.\n");
+//        fprintf(stderr, "         drop-se           drop unpaired reads from an interleaved paired-end FASTQ file.\n");
+//        fprintf(stderr, "         fq2fa           converts a FASTQ file to FASTA file.\n");
+//        fprintf(stderr, "         fa2fq           converts a FASTA file to FASTQ file.\n");
+
+
         fprintf(stderr, "\n");
         return 1;
     }
@@ -204,11 +397,11 @@ int main(int argc, char * argv[])
         
         fr2 = myfopen(argv[4],"w");
 
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
         
-        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
 
-        b2 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        b2 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
 
         
         i = 0;
@@ -229,19 +422,23 @@ int main(int argc, char * argv[])
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
+
             if (bytes_read == 0) { // end of file?
                 if (feof(fip)) {
                     break;
                 }
             }
-            
-            if (buffer[bytes_read-1] == '\0') {
-                if (bytes_read != 1 && buffer[bytes_read-2] == '\n') {
-                    bytes_read = bytes_read - 1;
-                } else {
+
+
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
                     buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
                 }
             }
+
 
             flag = 0;
             for (i=0;i<bytes_read;i++) {
@@ -249,7 +446,6 @@ int main(int argc, char * argv[])
                 if (buffer[i] == '\n') {
                     j = j + 1;
                     if (j==4) {
-                        flag = 1;
                         if (r1==0) {
                             l = i - k + 1;
                             memcpy(b1+b1i,buffer+k,l);
@@ -266,7 +462,6 @@ int main(int argc, char * argv[])
                     }
                 }
             }
-            
 
             if (flag == 0) {
                 i = bytes_read - 1;
@@ -303,7 +498,7 @@ int main(int argc, char * argv[])
         free(b1);
         free(b2);
 
-
+        return 0;
     } // end DEINTERLEAVE
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -325,11 +520,11 @@ int main(int argc, char * argv[])
         fi2p = myfopen(argv[3],"r");
 
 
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
         
-        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
 
-        b2 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        b2 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
         
         i = 0;
         j = 0;
@@ -371,11 +566,12 @@ int main(int argc, char * argv[])
                             continue;
                         }
                     }
-                    if (b1[bytes_read1-1] == '\0') {
-                        if (bytes_read1 != 1 && b1[bytes_read1-2] == '\n') {
-                            bytes_read1 = bytes_read1 - 1; 
-                        } else {
+                    if (feof(fi1p)) {
+                        if(b1[bytes_read1-1] != '\n') {
+                            bytes_read1 = bytes_read1 + 1;
                             b1[bytes_read1-1] = '\n';
+                        } else if (bytes_read1 > 1 && b1[bytes_read1-2] == '\n' && b1[bytes_read1-1] == '\n') {
+                            bytes_read1 = bytes_read1 - 1;
                         }
                     }
                 }
@@ -434,11 +630,12 @@ int main(int argc, char * argv[])
                             continue;
                         }
                     }
-                    if (b2[bytes_read2-1] == '\0') {
-                        if (bytes_read2 > 1 && b2[bytes_read2-2] == '\n') {
-                            bytes_read2 = bytes_read2 - 1;
-                        } else {
+                    if (feof(fi2p)) {
+                        if(b2[bytes_read2-1] != '\n') {
+                            bytes_read2 = bytes_read2 + 1;
                             b2[bytes_read2-1] = '\n';
+                        } else if (bytes_read2 > 1 && b2[bytes_read2-2] == '\n' && b2[bytes_read2-1] == '\n') {
+                            bytes_read2 = bytes_read2 - 1;
                         }
                     }
                 }
@@ -502,6 +699,7 @@ int main(int argc, char * argv[])
         free(buffer);
         free(b1);
         free(b2);
+        return 0;
     } // end INTERLEAVE
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -526,7 +724,7 @@ int main(int argc, char * argv[])
         }
         
 
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
         
 
         u = 0;
@@ -549,11 +747,12 @@ int main(int argc, char * argv[])
                 }
             }
             
-            if (buffer[bytes_read-1] == '\0') {
-                if (bytes_read != 1 && buffer[bytes_read-2] == '\n') {
-                    bytes_read = bytes_read - 1;
-                } else {
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
                     buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
                 }
             }
 
@@ -584,7 +783,7 @@ int main(int argc, char * argv[])
         }
 
         free(buffer);
-
+        return 0;
     } // end COUNT
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -609,7 +808,7 @@ int main(int argc, char * argv[])
         }
         
 
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
 
         for (i=0;i<MAX_LEN;i++) {
             len[i] = 0;
@@ -650,7 +849,7 @@ int main(int argc, char * argv[])
                         if (l < MAX_LEN && l - 1 > 0) {
                             len[l] = 1;
                         } else {
-                            fprintf(stderr, "ERROR: Too long read sequence found. Maximum length of supported reads is %d.\n",MAX_LEN);
+                            fprintf(stderr, "ERROR: Too long read sequence found. Maximum length of supported reads is %ld.\n",MAX_LEN);
                             free(buffer);
                             return 2;
                         }
@@ -663,8 +862,9 @@ int main(int argc, char * argv[])
             
             if (flag == 1) {
                 flag = 0;
-                i = bytes_read - 1;
+                i = bytes_read;
                 l = i - k - 1;
+                k = 0;
             }
             if (k != 0 && k != 1 && buffer[k-1] == '\r') {
                 windows = 1;
@@ -686,7 +886,7 @@ int main(int argc, char * argv[])
         }
 
         free(buffer);
-
+        return 0;
     } // end LENGTHS
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -707,7 +907,7 @@ int main(int argc, char * argv[])
         
         fr2 = myfopen(argv[4],"w");
 
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
 
         for (i=0;i<MAX_LEN;i++) {
             len[i] = 0;
@@ -750,7 +950,7 @@ int main(int argc, char * argv[])
                         if (l<MAX_LEN) {
                             len[l] = 1;
                         } else {
-                            fprintf(stderr, "ERROR: Too long read sequence found. Maximum length of supported reads is %d.\n",MAX_LEN);
+                            fprintf(stderr, "ERROR: Too long read sequence found. Maximum length of supported reads is %ld.\n",MAX_LEN);
                             free(buffer);
                             return 2;
                         }
@@ -796,7 +996,7 @@ int main(int argc, char * argv[])
         fclose(fr2);
 
         free(buffer);
-
+        return 0;
     } // end COUNT-LENGTHS
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -826,7 +1026,7 @@ int main(int argc, char * argv[])
             r1 = 8;
         }
 
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
         
 
         
@@ -849,11 +1049,12 @@ int main(int argc, char * argv[])
                 }
             }
             
-            if (buffer[bytes_read-1] == '\0') {
-                if (bytes_read != 1 && buffer[bytes_read-2] == '\n') {
-                    bytes_read = bytes_read - 1;
-                } else {
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
                     buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
                 }
             }
 
@@ -881,7 +1082,7 @@ int main(int argc, char * argv[])
         }
 
         free(buffer);
-
+        return 0;
     } // end TAB4 & TAB8
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -911,7 +1112,7 @@ int main(int argc, char * argv[])
             r1 = 8;
         }
 
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR);
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
         
 
         
@@ -934,11 +1135,12 @@ int main(int argc, char * argv[])
                 }
             }
             
-            if (buffer[bytes_read-1] == '\0') {
-                if (bytes_read != 1 && buffer[bytes_read-2] == '\n') {
-                    bytes_read = bytes_read - 1;
-                } else {
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
                     buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
                 }
             }
 
@@ -960,10 +1162,1678 @@ int main(int argc, char * argv[])
         }
 
         free(buffer);
-
+        return 0;
     } // end DETAB
 
-    return 0;
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    DROP-SHORT
+    */
+    if (usage == 10) {
+        threshold = atoi(argv[2]);
+        is_stdin = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[3],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[4],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i;
+                    } else if (j==4) {
+                        if (k2-k1>=threshold) {
+                            l = i - j2 + 1;
+                            if (b1i + l > BUFFER_SIZE - 10) {
+                                fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                                b1i = 0;
+                            }
+                            memcpy(b1+b1i,buffer+j2,l);
+                            b1i = b1i + l;
+                        }
+                        // (j2,i) = entire read - id, seq, +, qual
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end DROP-SHORT
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    NtoA
+    */
+    if (usage == 11) {
+
+        is_stdin = 0;
+        if (strcmp(argv[2],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[2],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[3],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+
+        i = 0;
+        j = 0;
+        l = 0;
+
+
+        k = 0;
+
+        flag = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer, SIZE_OF_CHAR, BUFFER_SIZE, fip);
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+
+            for (i=0;i<bytes_read;i++) {
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k = i + 1;
+                        flag = 1;
+                    } else if (j==2) {
+                        flag = 0;
+                        for (l=k;l<i;l++) {
+                            if (buffer[l]=='N') {
+                                buffer[l]='A';
+                            }
+                        }
+                    } else if (j==4) {
+                        j = 0;
+                    }
+                }
+            }
+            
+            if (flag == 1) {
+                flag = 0;
+                i = bytes_read;
+                for (l=k;l<i;l++) {
+                    if (buffer[l]=='N') {
+                        buffer[l]='A';
+                    }
+                }
+                k = 0;
+            }
+
+            
+            fwrite(buffer, SIZE_OF_CHAR, bytes_read, fop);
+
+
+        } // while
+
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+
+        
+        return 0;
+    } // end NtoA
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    TRIM5
+    */
+    if (usage == 12) {
+        trim = atoi(argv[2]);
+        is_stdin = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[3],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[4],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        //copy id
+                        l = k1 - j2;
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        l = k2 - k1;
+                        if (l-1>trim) {
+                            k1 = k1 + trim; 
+                            l = k2 - k1;
+                            memcpy(b1+b1i,buffer+k1,l);
+                            b1i = b1i + l;
+                        } else {
+                            b1[b1i] = 'A';
+                            b1[b1i+1] = '\n';
+                            b1i = b1i + 2;
+                        }
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        l = i - j1 + 1;
+                        if (l-1>trim) {
+                            j1 = j1 + trim;
+                            l = i - j1 + 1;
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        } else {
+                            b1[b1i] = 'I';
+                            b1[b1i+1] = '\n';
+                            b1i = b1i + 2;
+                        }
+
+
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end TRIM5
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    TRIM3
+    */
+    if (usage == 13) {
+        trim = atoi(argv[2]);
+        is_stdin = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[3],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[4],"w");
+
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        //copy id
+                        l = k1 - j2;
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        l = k2 - k1;
+                        if (l-1>trim) {
+                            k2 = k2 - trim - 1; 
+                            l = k2 - k1;
+                            memcpy(b1+b1i,buffer+k1,l);
+                            b1i = b1i + l;
+                            b1[b1i] = '\n';
+                            b1i = b1i + 1;
+                        } else {
+                            b1[b1i] = 'A';
+                            b1[b1i+1] = '\n';
+                            b1i = b1i + 2;
+                        }
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        l = i - j1 + 1;
+                        if (l-1>trim) {
+                            l = i - j1 - trim;
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                            b1[b1i] = '\n';
+                            b1i = b1i + 1;
+                        } else {
+                            b1[b1i] = 'I';
+                            b1[b1i+1] = '\n';
+                            b1i = b1i + 2;
+                        }
+
+
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end TRIM5
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    RETAIN5
+    */
+    if (usage == 14) {
+        retain = atoi(argv[2]);
+        is_stdin = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[3],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[4],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        //copy id
+                        l = k1 - j2;
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        l = k2 - k1;
+                        if (l-1>retain) {
+                            l = retain;
+                            memcpy(b1+b1i,buffer+k1,l);
+                            b1i = b1i + l;
+                            b1[b1i] = '\n';
+                            b1i = b1i + 1;
+                        } else {
+                            memcpy(b1+b1i,buffer+k1,l);
+                            b1i = b1i + l;
+                        }
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        l = i - j1 + 1;
+                        if (l-1>retain) {
+                            l = retain;
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                            b1[b1i] = '\n';
+                            b1i = b1i + 1;
+                        } else {
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        }
+
+
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end RETAIN5
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    RETAIN3
+    */
+    if (usage == 15) {
+        retain = atoi(argv[2]);
+        is_stdin = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[3],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[4],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        //copy id
+                        l = k1 - j2;
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        l = k2 - k1;
+                        if (l-1>retain) {
+                            k1 = k1 + l - retain - 1;
+                            l = retain + 1;
+                            memcpy(b1+b1i,buffer+k1,l);
+                            b1i = b1i + l;
+                        } else {
+                            memcpy(b1+b1i,buffer+k1,l);
+                            b1i = b1i + l;
+                        }
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        l = i - j1 + 1;
+                        if (l-1>retain) {
+                            j1 = j1 + l - retain - 1;
+                            l = retain + 1;
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        } else {
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        }
+
+
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end RETAIN3
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    TRIMID
+    */
+    if (usage == 16) {
+        is_stdin = 0;
+        if (strcmp(argv[2],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[2],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[3],"w");
+
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        
+                        //copy id
+                        l = k1 - j2;
+                        for(x=j2+1;x<k1-1;x++) {
+                            if(buffer[x]==' ') {
+                                buffer[x] = '\n';
+                                l = x + 1 - j2;
+                                break;
+                            }
+                        }
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        l = k2 - k1;
+                        memcpy(b1+b1i,buffer+k1,l);
+                        b1i = b1i + l;
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        l = i - j1 + 1;
+                        memcpy(b1+b1i,buffer+j1,l);
+                        b1i = b1i + l;
+
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end TRIMID
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    TRIMN
+    */
+    if (usage == 17) {
+        is_stdin = 0;
+        if (strcmp(argv[2],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[2],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[3],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        
+                        //copy id
+                        l = k1 - j2;
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        k1old = k1;
+                        for(x=k1;x<k2-1;x++) { // trim 5
+                            if(buffer[x]!='N') {
+                                k1 = x;
+                                break;
+                            }
+                        }
+                        k2old = k2;
+                        for(x=k2-2;x>k1;x--) { // trim3
+                            if(buffer[x]!='N') {
+                                k2 = x + 2;
+                                break;
+                            }
+                        }
+                        l = k2 - k1;
+                        if (k2old!=k2) {
+                            buffer[k2-1] = '\n';
+                        }
+                        memcpy(b1+b1i,buffer+k1,l);
+                        b1i = b1i + l;
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        k1old = k1 - k1old;
+                        k2old = k2old - k2;
+                        if (k1old + k2old == 0) {
+                            // no trimming
+                            l = i - j1 + 1;
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        } else {
+                            j1 = j1 + k1old;
+                            l = i - k2old - j1 + 1;
+                            buffer[i-k2old] = '\n';
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        }
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end TRIMN
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    TRIMPOLYA
+    */
+    if (usage == 18) {
+        trim = atoi(argv[2]);
+        is_stdin = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[3],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[4],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        
+                        //copy id
+                        l = k1 - j2;
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        k1old = k1;
+                        for(x=k1;x<k2-1;x++) { // trim 5
+                            if(buffer[x]!='A') {
+                                k1 = x;
+                                break;
+                            }
+                        }
+                        if (k1-k1old<trim) {
+                            k1 = k1old;
+                        }
+                        k2old = k2;
+                        for(x=k2-2;x>k1;x--) { // trim3
+                            if(buffer[x]!='A') {
+                                k2 = x + 2;
+                                break;
+                            }
+                        }
+                        if (k2old-k2<trim) {
+                            k2 = k2old;
+                        } else {
+                            buffer[k2-1] = '\n';
+                        }
+                        l = k2 - k1;
+                        memcpy(b1+b1i,buffer+k1,l);
+                        b1i = b1i + l;
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        k1old = k1 - k1old;
+                        k2old = k2old - k2;
+                        if (k1old + k2old == 0) {
+                            // no trimming
+                            l = i - j1 + 1;
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        } else {
+                            j1 = j1 + k1old;
+                            l = i - k2old - j1 + 1;
+                            buffer[i-k2old] = '\n';
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        }
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end TRIMPOLYA
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    COMPRESSID
+    */
+    if (usage == 19) {
+
+        long long int N = 0;
+        char line[50];
+        char interleaved = 0;
+        char slash = 0;
+        char flag = 0;
+        char first = 0;
+        
+        if (strcmp(argv[2],"@@") == 0 || strcmp(argv[2],"/12") == 0 || strcmp(argv[2],"_12") == 0) {
+            interleaved = 1;
+            flag = 1;
+        }
+        if (strcmp(argv[2],"/1") == 0 || strcmp(argv[2],"/2") == 0 || strcmp(argv[2],"/12") == 0 || strcmp(argv[2],"_1") == 0 || strcmp(argv[2],"_2") == 0 || strcmp(argv[2],"_12") == 0) {
+            slash = 1;
+            flag = 1;
+        }
+        if (strcmp(argv[2],"@") == 0) {
+            slash = 0;
+            interleaved = 0;
+            flag = 1;
+        }
+
+        if (slash == 1) {
+            EXTRA[0] = argv[2][0];
+            EXTRA[1] = argv[2][1];
+            EXTRA[2] = 10;
+            EXTRA[3] = 0;
+        }
+        
+        if (flag == 0) {
+            fprintf(stderr, "ERROR: Something wrong with command line options!\n");
+            return 2;
+        }
+
+        char *p = strchr(argv[3], '.');
+        if (p == NULL) {
+            // it is not a file
+            N = atoi(argv[3]);
+        } else {
+            // it is a file and then read it from the file
+            fip = myfopen(argv[3],"r");
+            if (fgets(line, sizeof(line), fip) ){
+                N = atoi(line);
+            }
+            fclose(fip);
+        }
+        if (N==0) {
+            fprintf(stderr, "ERROR: Wrong number of reads!\n");
+            return 2;
+        }
+        
+        
+        DIGITS = (char) (ceil(log10(N+1) / log10(CARS_LEN)));
+
+        is_stdin = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[4],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[5],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[5],"w");
+
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+        first = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        
+                        
+                        //copy id
+                        if (interleaved == 0 ) {
+                            nextid();
+                            l = COUNTER_LEN;
+                            memcpy(b1+b1i,COUNTER,l);
+                            b1i = b1i + l;
+                        } else {
+                            if (first == 0) {
+                                nextid();
+                                first = 1;
+                                l = COUNTER_LEN;
+                                memcpy(b1+b1i,COUNTER,l);
+                                b1i = b1i + l;
+                            } else {
+                                first = 0;
+                                l = COUNTER_LEN;
+                                memcpy(b1+b1i,COUNTER,l);
+                                b1i = b1i + l;
+                                if (slash==1) {
+                                    b1[b1i-2] = '2';
+                                }
+                            }
+                        }
+
+
+                        //copy seq
+                        l = k2 - k1;
+                        memcpy(b1+b1i,buffer+k1,l);
+
+                        b1i = b1i + l;
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        l = i - j1 + 1;
+                        memcpy(b1+b1i,buffer+j1,l);
+                        b1i = b1i + l;
+
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end COMPRESSID
+
+
 }
 
 
