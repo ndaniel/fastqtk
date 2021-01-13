@@ -17,8 +17,25 @@ Usage
 ```
 Usage:   fastqtk <command> <arguments>
 
-Command: interleave        interleave two paired-end FASTQ files
-         deinterleave      splits one interleave FASTQ file
+Command: interleave        interleaves two paired-end FASTQ files.
+         deinterleave      splits an (already) interleaved FASTQ file.
+         count             counts all reads from a FASTQ file.
+         lengths           summary statistics for lengths of reads from a FASTQ file.
+         count-lengths     number of reads and summary statistics for lengths of reads from a FASTQ file.
+         tab4              converts a FASTQ file to a text tab-delimited file with 4 columns.
+         tab8              converts a (interleaved paired-end) FASTQ file to text tab-delimited file with 8 columns.
+         detab             converts a text tab-delimited file with 4 or 8 columns (which was converted using tab4 or tab8) to FASTQ file.
+         drop-short        drops reads that have short sequences (below a given threshold).
+         NtoA              replaces all Ns in reads sequences with As in a FASTQ file.
+         trim5             trims 5' end of the reads from a FASTQ file.
+         trim3             trims 3' end of the reads from a FASTQ file.
+         retain5           retains the first N bp from 5'end of the reads from a FASTQ file.
+         retain3           retains the last N bp from 3'end of the reads from a FASTQ file.
+         trim-id           trims the reads ids from a FASTQ file from the end to the first blank in the string.
+         trim-N            trim N at both ends of the reads from a FASTQ file.
+         trim-polyA        trim polyA at both ends of the reads from a FASTQ file.
+         compress-id       lossy compression of the reads ids from a FASTQ file.
+
 ```
 
 Examples
