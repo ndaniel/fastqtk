@@ -33,6 +33,9 @@ Command:
       trim-id          trims reads ids (removes everything after first space) from a FASTQ file.
       trim-N           trims Ns at both ends of the reads from a FASTQ file.
       trim-polyA       trims polyA at both ends of the reads from a FASTQ file.
+      trim-polyT       trims polyT at both ends of the reads from a FASTQ file.
+      trim-polyC       trims polyC at both ends of the reads from a FASTQ file.
+      trim-polyG       trims polyG at both ends of the reads from a FASTQ file.
       drop-se          drops unpaired reads from an interleaved paired-end FASTQ file.
       drop-short       drops reads that have short sequences (below a given threshold).
       fq2fa            converts a FASTQ file to FASTA file.
@@ -40,6 +43,7 @@ Command:
       compress-id      lossy compression of the reads ids from a FASTQ file.
       NtoA             replaces all Ns in reads sequences with As in a FASTQ file.
       rev-com          reverse complements all reads in a FASTQ file.
+
 ```
 
 Examples
