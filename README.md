@@ -17,25 +17,29 @@ Usage
 ```
 Usage:   fastqtk <command> <arguments>
 
-Command: interleave        interleaves two paired-end FASTQ files.
-         deinterleave      splits an (already) interleaved FASTQ file.
-         count             counts all reads from a FASTQ file.
-         lengths           summary statistics for lengths of reads from a FASTQ file.
-         count-lengths     number of reads and summary statistics for lengths of reads from a FASTQ file.
-         tab4              converts a FASTQ file to a text tab-delimited file with 4 columns.
-         tab8              converts a (interleaved paired-end) FASTQ file to text tab-delimited file with 8 columns.
-         detab             converts a text tab-delimited file with 4 or 8 columns (which was converted using tab4 or tab8) to FASTQ file.
-         drop-short        drops reads that have short sequences (below a given threshold).
-         NtoA              replaces all Ns in reads sequences with As in a FASTQ file.
-         trim5             trims 5' end of the reads from a FASTQ file.
-         trim3             trims 3' end of the reads from a FASTQ file.
-         retain5           retains the first N bp from 5'end of the reads from a FASTQ file.
-         retain3           retains the last N bp from 3'end of the reads from a FASTQ file.
-         trim-id           trims the reads ids from a FASTQ file from the end to the first blank in the string.
-         trim-N            trim N at both ends of the reads from a FASTQ file.
-         trim-polyA        trim polyA at both ends of the reads from a FASTQ file.
-         compress-id       lossy compression of the reads ids from a FASTQ file.
-
+Command:
+      interleave       interleaves two paired-end FASTQ files.
+      deinterleave     splits an (already) interleaved (paired-end) FASTQ file.
+      count            counts all reads from a FASTQ file.
+      lengths          summary statistics for lengths of reads from a FASTQ file.
+      count-lengths    number of reads and summary statistics for lengths of reads from a FASTQ file.
+      tab-4            converts a FASTQ file to a text tab-delimited file with 4 columns.
+      tab-8            converts a (interleaved paired-end) FASTQ file to text tab-delimited file with 8 columns.
+      detab            converts a text tab-delimited file with 4/8 columns (converted using tab4/tab8) to FASTQ file.
+      retain-5         retains the first N bp from 5'end of the reads from a FASTQ file.
+      retain-3         retains the last N bp from 3'end of the reads from a FASTQ file.
+      trim-5           trims 5' end of the reads from a FASTQ file.
+      trim-3           trims 3' end of the reads from a FASTQ file.
+      trim-id          trims reads ids (removes everything after first space) from a FASTQ file.
+      trim-N           trims Ns at both ends of the reads from a FASTQ file.
+      trim-polyA       trims polyA at both ends of the reads from a FASTQ file.
+      drop-se          drops unpaired reads from an interleaved paired-end FASTQ file.
+      drop-short       drops reads that have short sequences (below a given threshold).
+      fq2fa            converts a FASTQ file to FASTA file.
+      fa2fq            converts a FASTA file to FASTQ file.
+      compress-id      lossy compression of the reads ids from a FASTQ file.
+      NtoA             replaces all Ns in reads sequences with As in a FASTQ file.
+      rev-com          reverse complements all reads in a FASTQ file.
 ```
 
 Examples
@@ -110,6 +114,27 @@ Examples
 * Compress the reads ids from a FASTQ file:
 
         fastqtk count reads.fq count.txt
-        fastqtk compress-id @ count.txt reads.fq out.fq
+        fastqtk compress-id count.txt reads.fq out.fq
+        
+* Compress the reads ids from a FASTQ file (without counting the reads and when it is known that number of reads is below 200 million reads):
+
+        fastqtk compress-id 200000000 reads.fq out.fq
+        
+* Remove the unpaired reads from an interleaved FASTQ file:
+
+        fastqtk drop-seq reads.fq out.fq
+
+* Convert a FASTQ file to a FASTA file:
+
+        fastqtk fq2fa reads.fq reads.fa
+
+* Convert a FASTA file to a FASTQ file:
+
+        fastqtk fa2fq reads.fa reads.fq
+        
+* Reverse complement all reads from a FASTQ file:
+
+        fastqtk rev-com reads.fq reads_revcom.fq
+        
         
         
