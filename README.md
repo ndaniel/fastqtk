@@ -1,7 +1,7 @@
 FASTQ tools
 ------------
 
-**fastqtk** is a fast and lightweight tool for interleaving and deinterleavng FASTQ files.
+**fastqtk** is a fast and lightweight tool for interleaving/deinterleaving/counting/trimming FASTQ files.
 
 Installation
 ------------
