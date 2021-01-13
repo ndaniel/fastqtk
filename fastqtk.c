@@ -435,7 +435,6 @@ int main(int argc, char * argv[])
                 fprintf(stderr, "Usage:   fastqtk  trim-polyACGT  <N>  <in.fq>  <out.fq>\n\n");
 
                 fprintf(stderr, "It trims polyA/C/G/T (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
-                fprintf(stderr, "Also the polyN will be trimmed for boths ends of the read sequence. For polyN the minimum length is 1.");
                 fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
                 return 1;
             } else {
@@ -2528,7 +2527,7 @@ int main(int argc, char * argv[])
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
     /*
-    TRIMPOLYA & TRIMPOLYT
+    TRIMPOLYA & TRIMPOLYT & TRIMPOLYC & TRIMPOLYG
     */
     if (usage == 18 || usage == 24 || usage == 25 || usage == 26) {
     
@@ -2718,7 +2717,7 @@ int main(int argc, char * argv[])
         free(b1);
         
         return 0;
-    } // end TRIMPOLYA
+    } // end TRIMPOLY
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3695,6 +3694,195 @@ int main(int argc, char * argv[])
         return 0;
     } // end REVCOM
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+    /*
+    TRIMPOLYACGT
+    */
+    if (usage == 27) {
+    
+        char c = 'A';
+
+    
+        trim = atoi(argv[2]);
+        is_stdin = 0;
+        if (strcmp(argv[3],"-")==0) {
+            fip = stdin;
+            is_stdin = 1;
+        } else {
+            fip = myfopen(argv[3],"r");
+        }
+        is_stdout = 0;
+        if (strcmp(argv[4],"-")==0) {
+            fop = stdout;
+            is_stdout = 1;
+        } else {
+            fop = myfopen(argv[4],"w");
+        }
+        
+
+        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
+
+        i = 0;
+        j = 0;
+
+
+        k = 0;
+
+        j1 = 0;
+        j2 = 0;
+
+        
+        k1 = 0;
+        k2 = 0;
+        
+        b1i = 0;
+
+        while(1) {
+
+            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
+            bytes_read = k + bytes_read;
+            k = 0;
+
+            if (ferror(fip)) {
+                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
+                    return 2;
+            }
+            if (bytes_read == 0) { // end of file?
+                if (feof(fip)) {
+                    break;
+                }
+            }
+            
+            if (feof(fip)) {
+                if(buffer[bytes_read-1] != '\n') {
+                    bytes_read = bytes_read + 1;
+                    buffer[bytes_read-1] = '\n';
+                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
+                    bytes_read = bytes_read - 1;
+                }
+            }
+
+            flag = 0;
+            for (i=0;i<bytes_read;i++) {
+                flag = 0;
+                if (buffer[i] == '\n') {
+                    j = j + 1;
+                    if (j==1) {
+                        k1 = i + 1;
+                    } else if (j==2) {
+                        k2 = i + 1;
+                    } else if (j==3) {
+                        j1 = i + 1;
+                    } else if (j==4) {
+                        // j2 = id start
+                        // k1 = seq start
+                        // k2= plus start
+                        // j1 = qual start
+                        // i = end of qual
+                        // (j2,i) = entire read - id, seq, +, qual
+
+                        l = i - j2 + 1;
+                        if (b1i + l > BUFFER_SIZE - 10) {
+                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+                            b1i = 0;
+                        }
+                        
+                        //copy id
+                        l = k1 - j2;
+                        memcpy(b1+b1i,buffer+j2,l);
+                        b1i = b1i + l;
+
+                        //copy seq
+                        k1old = k1;
+                        for(x=k1;x<k2-1;x++) { // trim 5
+                            if(buffer[x]!=c) {
+                                k1 = x;
+                                break;
+                            }
+                        }
+                        if (k1-k1old<trim) {
+                            k1 = k1old;
+                        }
+                        k2old = k2;
+                        for(x=k2-2;x>k1;x--) { // trim3
+                            if(buffer[x]!=c) {
+                                k2 = x + 2;
+                                break;
+                            }
+                        }
+                        if (k2old-k2<trim) {
+                            k2 = k2old;
+                        } else {
+                            buffer[k2-1] = '\n';
+                        }
+                        l = k2 - k1;
+                        memcpy(b1+b1i,buffer+k1,l);
+                        b1i = b1i + l;
+
+                        //copy +
+                        b1[b1i] = '+';
+                        b1[b1i+1] = '\n';
+                        b1i = b1i + 2;
+
+                        //copy qual
+                        k1old = k1 - k1old;
+                        k2old = k2old - k2;
+                        if (k1old + k2old == 0) {
+                            // no trimming
+                            l = i - j1 + 1;
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        } else {
+                            j1 = j1 + k1old;
+                            l = i - k2old - j1 + 1;
+                            buffer[i-k2old] = '\n';
+                            memcpy(b1+b1i,buffer+j1,l);
+                            b1i = b1i + l;
+                        }
+
+                        flag = 1;
+                        j = 0;
+                        j2 = i + 1;
+                    }
+                }
+            }
+            
+            if (flag == 0) {
+                k = bytes_read - j2;
+                memcpy(buffer,buffer+j2,k);
+                j = 0;
+                j2 = 0;
+                j1 = 0;
+                k1= 0;
+                k2 = 0;
+            }
+            
+            
+
+
+        } // while
+
+
+        if (b1i != 0) {
+            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
+        }
+
+        
+        if (is_stdin == 0) {
+            fclose(fip);
+        }
+        if (is_stdout == 0) {
+            fclose(fop);
+        }
+
+        free(buffer);
+        free(b1);
+        
+        return 0;
+    } // end TRIMPOLYACGT   
+   
 }
 
 
