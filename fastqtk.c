@@ -3605,6 +3605,20 @@ int main(int argc, char * argv[])
                             
                             b1[b1i+l1-1-x] = z;
                         }
+                        if (l1%2 == 1) {
+                            x = l2;
+                            z = b1[b1i+x];
+                            if (z=='A') {
+                                z = 'T';
+                            } else if (z=='C') {
+                                z = 'G';
+                            } else if (z=='G') {
+                                z = 'C';
+                            } else if (z=='T') {
+                                z = 'A';
+                            }
+                            b1[b1i+x] = z;
+                        }
                         b1i = b1i + l;
 
 
