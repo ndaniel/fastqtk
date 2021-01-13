@@ -396,12 +396,45 @@ int main(int argc, char * argv[])
             } else {
                 usage = 23;
             }
-        }
+        } else if (strcmp(argv[1],"trim-polyT") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastqtk  trim-polyT  <N>  <in.fq>  <out.fq>\n\n");
+
+                fprintf(stderr, "It trims polyT (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 24;
+            }
+        } else if (strcmp(argv[1],"trim-polyC") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastqtk  trim-polyC  <N>  <in.fq>  <out.fq>\n\n");
+
+                fprintf(stderr, "It trims polyC (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 25;
+            }
+        } else if (strcmp(argv[1],"trim-polyG") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastqtk  trim-polyG  <N>  <in.fq>  <out.fq>\n\n");
+
+                fprintf(stderr, "It trims polyG (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 26;
+            }
+        } 
     }
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastqtk  <command>  <arguments>\n");
-        fprintf(stderr, "Version: 0.22\n\n");
+        fprintf(stderr, "Version: 0.23\n\n");
         fprintf(stderr, "Command:\n");
         fprintf(stderr, "      interleave       interleaves two paired-end FASTQ files.\n");
         fprintf(stderr, "      deinterleave     splits an (already) interleaved (paired-end) FASTQ file.\n");
@@ -418,6 +451,9 @@ int main(int argc, char * argv[])
         fprintf(stderr, "      trim-id          trims reads ids (removes everything after first space) from a FASTQ file.\n");
         fprintf(stderr, "      trim-N           trims Ns at both ends of the reads from a FASTQ file.\n");
         fprintf(stderr, "      trim-polyA       trims polyA at both ends of the reads from a FASTQ file.\n");
+        fprintf(stderr, "      trim-polyT       trims polyT at both ends of the reads from a FASTQ file.\n");
+        fprintf(stderr, "      trim-polyC       trims polyC at both ends of the reads from a FASTQ file.\n");
+        fprintf(stderr, "      trim-polyG       trims polyG at both ends of the reads from a FASTQ file.\n");
         fprintf(stderr, "      drop-se          drops unpaired reads from an interleaved paired-end FASTQ file.\n");
         fprintf(stderr, "      drop-short       drops reads that have short sequences (below a given threshold).\n");
         fprintf(stderr, "      fq2fa            converts a FASTQ file to FASTA file.\n");
@@ -2479,9 +2515,19 @@ int main(int argc, char * argv[])
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
     /*
-    TRIMPOLYA
+    TRIMPOLYA & TRIMPOLYT
     */
-    if (usage == 18) {
+    if (usage == 18 || usage == 24 || usage == 25 || usage == 26) {
+    
+        char c = 'A';
+        if (usage == 24) {
+            c = 'T';
+        } else if (usage == 25) {
+            c = 'C';
+        } else if (usage == 26) {
+            c = 'G';
+        }
+    
         trim = atoi(argv[2]);
         is_stdin = 0;
         if (strcmp(argv[3],"-")==0) {
@@ -2575,7 +2621,7 @@ int main(int argc, char * argv[])
                         //copy seq
                         k1old = k1;
                         for(x=k1;x<k2-1;x++) { // trim 5
-                            if(buffer[x]!='A') {
+                            if(buffer[x]!=c) {
                                 k1 = x;
                                 break;
                             }
@@ -2585,7 +2631,7 @@ int main(int argc, char * argv[])
                         }
                         k2old = k2;
                         for(x=k2-2;x>k1;x--) { // trim3
-                            if(buffer[x]!='A') {
+                            if(buffer[x]!=c) {
                                 k2 = x + 2;
                                 break;
                             }
