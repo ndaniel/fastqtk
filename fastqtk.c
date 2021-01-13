@@ -429,12 +429,24 @@ int main(int argc, char * argv[])
             } else {
                 usage = 26;
             }
-        } 
+        } else if (strcmp(argv[1],"trim-polyACGT") == 0) {
+            if (argc != 5) {
+                fprintf(stderr, "\n");
+                fprintf(stderr, "Usage:   fastqtk  trim-polyACGT  <N>  <in.fq>  <out.fq>\n\n");
+
+                fprintf(stderr, "It trims polyA/C/G/T (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
+                fprintf(stderr, "Also the polyN will be trimmed for boths ends of the read sequence. For polyN the minimum length is 1.");
+                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                return 1;
+            } else {
+                usage = 27;
+            }
+        }
     }
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastqtk  <command>  <arguments>\n");
-        fprintf(stderr, "Version: 0.23\n\n");
+        fprintf(stderr, "Version: 0.24\n\n");
         fprintf(stderr, "Command:\n");
         fprintf(stderr, "      interleave       interleaves two paired-end FASTQ files.\n");
         fprintf(stderr, "      deinterleave     splits an (already) interleaved (paired-end) FASTQ file.\n");
@@ -454,6 +466,7 @@ int main(int argc, char * argv[])
         fprintf(stderr, "      trim-polyT       trims polyT at both ends of the reads from a FASTQ file.\n");
         fprintf(stderr, "      trim-polyC       trims polyC at both ends of the reads from a FASTQ file.\n");
         fprintf(stderr, "      trim-polyG       trims polyG at both ends of the reads from a FASTQ file.\n");
+        fprintf(stderr, "      trim-polyACGT    trims polyA/C/G/T at both ends of the reads from a FASTQ file.\n");       
         fprintf(stderr, "      drop-se          drops unpaired reads from an interleaved paired-end FASTQ file.\n");
         fprintf(stderr, "      drop-short       drops reads that have short sequences (below a given threshold).\n");
         fprintf(stderr, "      fq2fa            converts a FASTQ file to FASTA file.\n");
