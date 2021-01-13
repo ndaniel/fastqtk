@@ -41,10 +41,10 @@ echo "Test 7"
 ./fastqtk count-lengths ri.fq count_ri_.txt lengths_ri_.txt
 
 echo "Test 8"
-./fastqtk tab4 ri.fq tab4_ri.txt
+./fastqtk tab-4 ri.fq tab4_ri.txt
 
 echo "Test 9"
-./fastqtk tab8 ri.fq tab8_ri.txt
+./fastqtk tab-8 ri.fq tab8_ri.txt
 
 echo "Test 10"
 ./fastqtk detab tab4_ri.txt ri_4back.fq
@@ -62,24 +62,24 @@ echo "Test 13"
 #diff reads_1_n2a.fq reads_1.fq
 
 echo "Test 14"
-./fastqtk trim5 7 reads_1.fq reads_1_trim5_7.fq
-./fastqtk trim5 99 reads_1.fq reads_1_trim5_99.fq
-./fastqtk trim5 0 reads_1.fq reads_1_trim5_0.fq
+./fastqtk trim-5 7 reads_1.fq reads_1_trim5_7.fq
+./fastqtk trim-5 99 reads_1.fq reads_1_trim5_99.fq
+./fastqtk trim-5 0 reads_1.fq reads_1_trim5_0.fq
 
 echo "Test 15"
-./fastqtk trim3 7 reads_1.fq reads_1_trim3_7.fq
-./fastqtk trim3 99 reads_1.fq reads_1_trim3_99.fq
-./fastqtk trim3 0 reads_1.fq reads_1_trim3_0.fq
+./fastqtk trim-3 7 reads_1.fq reads_1_trim3_7.fq
+./fastqtk trim-3 99 reads_1.fq reads_1_trim3_99.fq
+./fastqtk trim-3 0 reads_1.fq reads_1_trim3_0.fq
 
 echo "Test 16"
-./fastqtk retain5 7 reads_1.fq reads_1_retain5_7.fq
-./fastqtk retain5 99 reads_1.fq reads_1_retain5_99.fq
-./fastqtk retain5 100 reads_1.fq reads_1_retain5_100.fq
+./fastqtk retain-5 7 reads_1.fq reads_1_retain5_7.fq
+./fastqtk retain-5 99 reads_1.fq reads_1_retain5_99.fq
+./fastqtk retain-5 100 reads_1.fq reads_1_retain5_100.fq
 
 echo "Test 17"
-./fastqtk retain3 7 reads_1.fq reads_1_retain3_7.fq
-./fastqtk retain3 99 reads_1.fq reads_1_retain3_99.fq
-./fastqtk retain3 100 reads_1.fq reads_1_retain3_100.fq
+./fastqtk retain-3 7 reads_1.fq reads_1_retain3_7.fq
+./fastqtk retain-3 99 reads_1.fq reads_1_retain3_99.fq
+./fastqtk retain-3 100 reads_1.fq reads_1_retain3_100.fq
 
 echo "Test 18"
 ./fastqtk trim-id reads_1.fq reads_1_trim-id.fq
@@ -95,6 +95,8 @@ echo "Test 20"
 
 echo "Test 21"
 ./fastqtk compress-id @ count_reads_1.txt reads_1.fq reads_1_compressed-ids.fq
+./fastqtk compress-id count_reads_1.txt reads_1.fq reads_1_compressed-ids_.fq
+./fastqtk compress-id 200000000 reads_1.fq reads_1_compressed-ids__.fq
 ./fastqtk compress-id /1 count_reads_1.txt reads_1.fq reads_1_compressed-ids-1.fq
 ./fastqtk compress-id /2 count_reads_1.txt reads_2.fq reads_2_compressed-ids-2.fq
 ./fastqtk compress-id _1 count_reads_1.txt reads_1.fq reads_1_compressed-ids-1_.fq
@@ -102,3 +104,31 @@ echo "Test 21"
 ./fastqtk compress-id @@ count_ri.txt ri.fq ri_compressed-ids.fq
 ./fastqtk compress-id /12 count_ri.txt ri.fq ri_compressed-ids-12.fq
 ./fastqtk compress-id _12 count_reads_1.txt ri.fq ri_compressed-ids_12.fq
+
+
+echo "Test 22"
+
+./fastqtk drop-se ri.fq ri_dropse.fq
+./fastqtk drop-se rik.fq rik_dropse.fq
+
+./fastqtk drop-se reads_1.fq reads_1_dropse.fq
+
+#./fastqtk interleave reads_1_compressed-ids-1.fq reads_2_compressed-ids-2.fq reads_compressed-ids.fq
+
+./fastqtk drop-se reads_compressed-ids.fq reads_compressed-ids_dropse.fq
+
+echo "Test 23"
+
+./fastqtk fq2fa reads_1.fq reads_1.fa
+
+echo "Test 24"
+
+./fastqtk fa2fq reads_1.fa reads_1_back.fq
+
+echo "Test 25"
+
+./fastqtk rev-com reads_1.fq reads_1_revcom.fq
+
+
+
+
