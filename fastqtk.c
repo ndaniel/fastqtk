@@ -308,26 +308,24 @@ int main(int argc, char * argv[])
             } else {
                 usage = 16;
             }
-        } else if (strcmp(argv[1],"trim-N") == 0) {
-            if (argc != 4) {
+        } else if (strcmp(argv[1],"trim-poly") == 0) {
+            if (argc != 6) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastqtk  trim-N  <in.fq>  <out.fq>\n\n");
-                fprintf(stderr, "It trims one or more Ns from both ends of the reads sequences from a FASTQ file.\n");
+                fprintf(stderr, "Usage:   fastqtk  trim-poly <A|C|G|T|N|ACGT>  <M> <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "It trims poly-A/C/G/T/N tails at both ends of the reads sequences from a FASTQ file.\n");
                 fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
+                fprintf(stderr, "Options:\n");
+                fprintf(stderr, "     *  A|C|G|T|N|ACGT  (nucleotide or nucleotides that form the poly tails that will be trimmed):\n");
+                fprintf(stderr, "               A             - poly-A tails are trimmed.\n");
+                fprintf(stderr, "               C             - poly-C tails are trimmed.\n");
+                fprintf(stderr, "               G             - poly-G tails are trimmed.\n");
+                fprintf(stderr, "               T             - poly-T tails are trimmed.\n");
+                fprintf(stderr, "               N             - poly-N tails are trimmed.\n");
+                fprintf(stderr, "               ACGT          - poly-A, poly-C, poly-G, and poly-T tails are trimmed.\n");
+                fprintf(stderr, "     *  M  (the length of the poly tail; all poly-tails equal or longer than M will be trimmed).\n\n");
                 return 1;
             } else {
                 usage = 17;
-            }
-        } else if (strcmp(argv[1],"trim-polyA") == 0) {
-            if (argc != 5) {
-                fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastqtk  trim-polyA  <N>  <in.fq>  <out.fq>\n\n");
-
-                fprintf(stderr, "It trims polyA (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
-                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
-                return 1;
-            } else {
-                usage = 18;
             }
         } else if (strcmp(argv[1],"compress-id") == 0) {
             if (!(argc == 6 || argc == 5)) {
@@ -335,11 +333,12 @@ int main(int argc, char * argv[])
                 fprintf(stderr, "Usage:   fastqtk  compress-id  [@|@@|/1|_1|/2|_2|/12|_12]  <N|counts.txt>  <in.fq>  <out.fq>\n\n");
                 fprintf(stderr, "It does lossy compression on the reads ids from a FASTQ file.\n");
                 fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
-                fprintf(stderr, "Options:   N|counts.txt              (count reads; if here is a dot then it is considered that a file has been given)\n");
+                fprintf(stderr, "Options:\n");
+                fprintf(stderr, "     *  N|counts.txt  (count reads; if here is a dot then it is considered that a file has been given):\n");
                 fprintf(stderr, "               N             - number of reads  in the input FASTQ file (or a much larger number). N is an positive integer.\n");
                 fprintf(stderr, "               counts.txt    - file that contains number of reads in the input FASTQ file <in.fq>, that was generated\n");
                 fprintf(stderr, "                               using 'fastqtk count in.fq counts.txt' beforehand.\n");
-                fprintf(stderr, "           @|@@|/1|_1|/2|_2|/12|_12|  (settings for generating reads ids)\n");
+                fprintf(stderr, "     *  @|@@|/1|_1|/2|_2|/12|_12  (settings for generating reads ids):\n");
                 fprintf(stderr, "               @             - does NOT add /1 or /2 to reads ids. (FASTQ file is NOT interleaved) [DEFAULT]\n");
                 fprintf(stderr, "               @@            - does NOT add /1 or /2 to reads ids. (FASTQ file is INTERLEAVED)\n\n");
                 fprintf(stderr, "               /1            - adds /1 to the end of the reads ids. (FASTQ file is NOT interleaved)\n");
@@ -347,7 +346,7 @@ int main(int argc, char * argv[])
                 fprintf(stderr, "               /12           - adds /1 and /2 to the end of the reads ids. (FASTQ file is INTERLEAVED\n");
                 fprintf(stderr, "               _1            - adds _1 to the end of the reads ids. (FASTQ file is NOT interleaved)\n");
                 fprintf(stderr, "               _2            - adds _2 to the end of the reads ids. (FASTQ file is NOT interleaved)\n");
-                fprintf(stderr, "               _12           - adds _1 and _2 to the end of the reads ids. (FASTQ file is INTERLEAVED)\n");
+                fprintf(stderr, "               _12           - adds _1 and _2 to the end of the reads ids. (FASTQ file is INTERLEAVED)\n\n");
                 return 1;
             } else {
                 usage = 19;
@@ -396,56 +395,12 @@ int main(int argc, char * argv[])
             } else {
                 usage = 23;
             }
-        } else if (strcmp(argv[1],"trim-polyT") == 0) {
-            if (argc != 5) {
-                fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastqtk  trim-polyT  <N>  <in.fq>  <out.fq>\n\n");
-
-                fprintf(stderr, "It trims polyT (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
-                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
-                return 1;
-            } else {
-                usage = 24;
-            }
-        } else if (strcmp(argv[1],"trim-polyC") == 0) {
-            if (argc != 5) {
-                fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastqtk  trim-polyC  <N>  <in.fq>  <out.fq>\n\n");
-
-                fprintf(stderr, "It trims polyC (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
-                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
-                return 1;
-            } else {
-                usage = 25;
-            }
-        } else if (strcmp(argv[1],"trim-polyG") == 0) {
-            if (argc != 5) {
-                fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastqtk  trim-polyG  <N>  <in.fq>  <out.fq>\n\n");
-
-                fprintf(stderr, "It trims polyG (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
-                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
-                return 1;
-            } else {
-                usage = 26;
-            }
-        } else if (strcmp(argv[1],"trim-polyACGT") == 0) {
-            if (argc != 5) {
-                fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastqtk  trim-polyACGT  <N>  <in.fq>  <out.fq>\n\n");
-
-                fprintf(stderr, "It trims polyA/C/G/T (of length N or more) from both ends of the reads sequences from a FASTQ file. N is positive integer. N > 1.\n");
-                fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
-                return 1;
-            } else {
-                usage = 27;
-            }
         }
     }
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastqtk  <command>  <arguments>\n");
-        fprintf(stderr, "Version: 0.24\n\n");
+        fprintf(stderr, "Version: 0.25\n\n");
         fprintf(stderr, "Command:\n");
         fprintf(stderr, "      interleave       interleaves two paired-end FASTQ files.\n");
         fprintf(stderr, "      deinterleave     splits an (already) interleaved (paired-end) FASTQ file.\n");
@@ -460,12 +415,7 @@ int main(int argc, char * argv[])
         fprintf(stderr, "      trim-5           trims 5' end of the reads from a FASTQ file.\n");
         fprintf(stderr, "      trim-3           trims 3' end of the reads from a FASTQ file.\n");
         fprintf(stderr, "      trim-id          trims reads ids (removes everything after first space) from a FASTQ file.\n");
-        fprintf(stderr, "      trim-N           trims Ns at both ends of the reads from a FASTQ file.\n");
-        fprintf(stderr, "      trim-polyA       trims polyA at both ends of the reads from a FASTQ file.\n");
-        fprintf(stderr, "      trim-polyT       trims polyT at both ends of the reads from a FASTQ file.\n");
-        fprintf(stderr, "      trim-polyC       trims polyC at both ends of the reads from a FASTQ file.\n");
-        fprintf(stderr, "      trim-polyG       trims polyG at both ends of the reads from a FASTQ file.\n");
-        fprintf(stderr, "      trim-polyACGT    trims polyA/C/G/T at both ends of the reads from a FASTQ file.\n");       
+        fprintf(stderr, "      trim-poly        trims poly-A/C/G/T/N tails at both ends of the reads sequences from a FASTQ file.\n");
         fprintf(stderr, "      drop-se          drops unpaired reads from an interleaved paired-end FASTQ file.\n");
         fprintf(stderr, "      drop-short       drops reads that have short sequences (below a given threshold).\n");
         fprintf(stderr, "      fq2fa            converts a FASTQ file to FASTA file.\n");
@@ -2345,217 +2295,55 @@ int main(int argc, char * argv[])
         return 0;
     } // end TRIMID
 
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
     /*
-    TRIMN
+    TRIMPOLYA & TRIMPOLYT & TRIMPOLYC & TRIMPOLYG & TRIMN
     */
     if (usage == 17) {
-        is_stdin = 0;
-        if (strcmp(argv[2],"-")==0) {
-            fip = stdin;
-            is_stdin = 1;
-        } else {
-            fip = myfopen(argv[2],"r");
-        }
-        is_stdout = 0;
-        if (strcmp(argv[3],"-")==0) {
-            fop = stdout;
-            is_stdout = 1;
-        } else {
-            fop = myfopen(argv[3],"w");
-        }
-        
-
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
-        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
-
-        i = 0;
-        j = 0;
-
-
-        k = 0;
-
-        j1 = 0;
-        j2 = 0;
-
-        
-        k1 = 0;
-        k2 = 0;
-        
-        b1i = 0;
-
-        while(1) {
-
-            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
-            bytes_read = k + bytes_read;
-            k = 0;
-
-            if (ferror(fip)) {
-                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
-                    return 2;
-            }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
-                    break;
-                }
-            }
-            
-            if (feof(fip)) {
-                if(buffer[bytes_read-1] != '\n') {
-                    bytes_read = bytes_read + 1;
-                    buffer[bytes_read-1] = '\n';
-                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
-                    bytes_read = bytes_read - 1;
-                }
-            }
-
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
-                    j = j + 1;
-                    if (j==1) {
-                        k1 = i + 1;
-                    } else if (j==2) {
-                        k2 = i + 1;
-                    } else if (j==3) {
-                        j1 = i + 1;
-                    } else if (j==4) {
-                        // j2 = id start
-                        // k1 = seq start
-                        // k2= plus start
-                        // j1 = qual start
-                        // i = end of qual
-                        // (j2,i) = entire read - id, seq, +, qual
-
-                        l = i - j2 + 1;
-                        if (b1i + l > BUFFER_SIZE - 10) {
-                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
-                            b1i = 0;
-                        }
-                        
-                        //copy id
-                        l = k1 - j2;
-                        memcpy(b1+b1i,buffer+j2,l);
-                        b1i = b1i + l;
-
-                        //copy seq
-                        k1old = k1;
-                        for(x=k1;x<k2-1;x++) { // trim 5
-                            if(buffer[x]!='N') {
-                                k1 = x;
-                                break;
-                            }
-                        }
-                        k2old = k2;
-                        for(x=k2-2;x>k1;x--) { // trim3
-                            if(buffer[x]!='N') {
-                                k2 = x + 2;
-                                break;
-                            }
-                        }
-                        l = k2 - k1;
-                        if (k2old!=k2) {
-                            buffer[k2-1] = '\n';
-                        }
-                        memcpy(b1+b1i,buffer+k1,l);
-                        b1i = b1i + l;
-
-                        //copy +
-                        b1[b1i] = '+';
-                        b1[b1i+1] = '\n';
-                        b1i = b1i + 2;
-
-                        //copy qual
-                        k1old = k1 - k1old;
-                        k2old = k2old - k2;
-                        if (k1old + k2old == 0) {
-                            // no trimming
-                            l = i - j1 + 1;
-                            memcpy(b1+b1i,buffer+j1,l);
-                            b1i = b1i + l;
-                        } else {
-                            j1 = j1 + k1old;
-                            l = i - k2old - j1 + 1;
-                            buffer[i-k2old] = '\n';
-                            memcpy(b1+b1i,buffer+j1,l);
-                            b1i = b1i + l;
-                        }
-
-                        flag = 1;
-                        j = 0;
-                        j2 = i + 1;
-                    }
-                }
-            }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
-                j1 = 0;
-                k1= 0;
-                k2 = 0;
-            }
-            
-            
-
-
-        } // while
-
-
-        if (b1i != 0) {
-            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
-        }
-
-        
-        if (is_stdin == 0) {
-            fclose(fip);
-        }
-        if (is_stdout == 0) {
-            fclose(fop);
-        }
-
-        free(buffer);
-        free(b1);
-        
-        return 0;
-    } // end TRIMN
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-    /*
-    TRIMPOLYA & TRIMPOLYT & TRIMPOLYC & TRIMPOLYG
-    */
-    if (usage == 18 || usage == 24 || usage == 25 || usage == 26) {
     
         char c = 'A';
-        if (usage == 24) {
-            c = 'T';
-        } else if (usage == 25) {
+        char acgt = 0;
+
+
+        if (strcmp(argv[2],"A")==0) {
+            c = 'A';
+        } else if (strcmp(argv[2],"C")==0) {
             c = 'C';
-        } else if (usage == 26) {
+        } else if (strcmp(argv[2],"G")==0) {
             c = 'G';
+        } else if (strcmp(argv[2],"T")==0) {
+            c = 'T';
+        } else if (strcmp(argv[2],"N")==0) {
+            c = 'N';
+        } else if (strcmp(argv[2],"ACGT")==0) {
+            c = 'X';
+            acgt = 1;
+        } else {
+            fprintf(stderr,"ERROR: the given nucleotide for poly tails trimming is not supported!\n");
+            return 2;
         }
-    
-        trim = atoi(argv[2]);
+
+
+        trim = atoi(argv[3]);
+        
         is_stdin = 0;
-        if (strcmp(argv[3],"-")==0) {
+        if (strcmp(argv[4],"-")==0) {
             fip = stdin;
             is_stdin = 1;
         } else {
-            fip = myfopen(argv[3],"r");
+            fip = myfopen(argv[4],"r");
         }
+        
         is_stdout = 0;
-        if (strcmp(argv[4],"-")==0) {
+        if (strcmp(argv[5],"-")==0) {
             fop = stdout;
             is_stdout = 1;
         } else {
-            fop = myfopen(argv[4],"w");
+            fop = myfopen(argv[5],"w");
         }
-        
+
 
         buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
         b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
@@ -2618,21 +2406,30 @@ int main(int argc, char * argv[])
                         // j1 = qual start
                         // i = end of qual
                         // (j2,i) = entire read - id, seq, +, qual
-
                         l = i - j2 + 1;
                         if (b1i + l > BUFFER_SIZE - 10) {
                             fwrite(b1, SIZE_OF_CHAR, b1i, fop);
                             b1i = 0;
                         }
                         
-                        //copy id
+                        //copy/trim id
                         l = k1 - j2;
+                        for(x=j2+1;x<k1-1;x++) {
+                            if(buffer[x]==' ') {
+                                buffer[x] = '\n';
+                                l = x + 1 - j2;
+                                break;
+                            }
+                        }
                         memcpy(b1+b1i,buffer+j2,l);
                         b1i = b1i + l;
 
                         //copy seq
                         k1old = k1;
-                        for(x=k1;x<k2-1;x++) { // trim 5
+                        if (acgt==1) {
+                            c = buffer[k1];
+                        }
+                        for(x=k1;x<k2;x++) { // trim 5
                             if(buffer[x]!=c) {
                                 k1 = x;
                                 break;
@@ -2642,21 +2439,31 @@ int main(int argc, char * argv[])
                             k1 = k1old;
                         }
                         k2old = k2;
-                        for(x=k2-2;x>k1;x--) { // trim3
+                        if (acgt==1) {
+                            c = buffer[k2-2];
+                        }
+                        for(x=k2-2;x>k1-2;x--) { // trim3
                             if(buffer[x]!=c) {
                                 k2 = x + 2;
                                 break;
                             }
                         }
+
                         if (k2old-k2<trim) {
                             k2 = k2old;
                         } else {
                             buffer[k2-1] = '\n';
                         }
-                        l = k2 - k1;
-                        memcpy(b1+b1i,buffer+k1,l);
-                        b1i = b1i + l;
 
+                        l = k2 - k1;
+                        if (l==1) {
+                            b1[b1i] = 'A';
+                            b1[b1i+1] = '\n';
+                            b1i = b1i + 2;
+                        } else {
+                            memcpy(b1+b1i,buffer+k1,l);
+                            b1i = b1i + l;
+                        }
                         //copy +
                         b1[b1i] = '+';
                         b1[b1i+1] = '\n';
@@ -2671,11 +2478,17 @@ int main(int argc, char * argv[])
                             memcpy(b1+b1i,buffer+j1,l);
                             b1i = b1i + l;
                         } else {
-                            j1 = j1 + k1old;
-                            l = i - k2old - j1 + 1;
-                            buffer[i-k2old] = '\n';
-                            memcpy(b1+b1i,buffer+j1,l);
-                            b1i = b1i + l;
+                            if (l==1) {
+                                b1[b1i] = 'I';
+                                b1[b1i+1] = '\n';
+                                b1i = b1i + 2;
+                            } else {
+                                j1 = j1 + k1old;
+                                l = i - k2old - j1 + 1;
+                                buffer[i-k2old] = '\n';
+                                memcpy(b1+b1i,buffer+j1,l);
+                                b1i = b1i + l;
+                            }
                         }
 
                         flag = 1;
@@ -3694,194 +3507,6 @@ int main(int argc, char * argv[])
         return 0;
     } // end REVCOM
 
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-    /*
-    TRIMPOLYACGT
-    */
-    if (usage == 27) {
-    
-        char c = 'A';
-
-    
-        trim = atoi(argv[2]);
-        is_stdin = 0;
-        if (strcmp(argv[3],"-")==0) {
-            fip = stdin;
-            is_stdin = 1;
-        } else {
-            fip = myfopen(argv[3],"r");
-        }
-        is_stdout = 0;
-        if (strcmp(argv[4],"-")==0) {
-            fop = stdout;
-            is_stdout = 1;
-        } else {
-            fop = myfopen(argv[4],"w");
-        }
-        
-
-        buffer = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
-        b1 = mymalloc(BUFFER_SIZE * SIZE_OF_CHAR + 1);
-
-        i = 0;
-        j = 0;
-
-
-        k = 0;
-
-        j1 = 0;
-        j2 = 0;
-
-        
-        k1 = 0;
-        k2 = 0;
-        
-        b1i = 0;
-
-        while(1) {
-
-            bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
-            bytes_read = k + bytes_read;
-            k = 0;
-
-            if (ferror(fip)) {
-                    fprintf(stderr, "ERROR: Failed reading the input file.\n");
-                    return 2;
-            }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
-                    break;
-                }
-            }
-            
-            if (feof(fip)) {
-                if(buffer[bytes_read-1] != '\n') {
-                    bytes_read = bytes_read + 1;
-                    buffer[bytes_read-1] = '\n';
-                } else if (bytes_read > 1 && buffer[bytes_read-2] == '\n' && buffer[bytes_read-1] == '\n') {
-                    bytes_read = bytes_read - 1;
-                }
-            }
-
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
-                    j = j + 1;
-                    if (j==1) {
-                        k1 = i + 1;
-                    } else if (j==2) {
-                        k2 = i + 1;
-                    } else if (j==3) {
-                        j1 = i + 1;
-                    } else if (j==4) {
-                        // j2 = id start
-                        // k1 = seq start
-                        // k2= plus start
-                        // j1 = qual start
-                        // i = end of qual
-                        // (j2,i) = entire read - id, seq, +, qual
-
-                        l = i - j2 + 1;
-                        if (b1i + l > BUFFER_SIZE - 10) {
-                            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
-                            b1i = 0;
-                        }
-                        
-                        //copy id
-                        l = k1 - j2;
-                        memcpy(b1+b1i,buffer+j2,l);
-                        b1i = b1i + l;
-
-                        //copy seq
-                        k1old = k1;
-                        for(x=k1;x<k2-1;x++) { // trim 5
-                            if(buffer[x]!=c) {
-                                k1 = x;
-                                break;
-                            }
-                        }
-                        if (k1-k1old<trim) {
-                            k1 = k1old;
-                        }
-                        k2old = k2;
-                        for(x=k2-2;x>k1;x--) { // trim3
-                            if(buffer[x]!=c) {
-                                k2 = x + 2;
-                                break;
-                            }
-                        }
-                        if (k2old-k2<trim) {
-                            k2 = k2old;
-                        } else {
-                            buffer[k2-1] = '\n';
-                        }
-                        l = k2 - k1;
-                        memcpy(b1+b1i,buffer+k1,l);
-                        b1i = b1i + l;
-
-                        //copy +
-                        b1[b1i] = '+';
-                        b1[b1i+1] = '\n';
-                        b1i = b1i + 2;
-
-                        //copy qual
-                        k1old = k1 - k1old;
-                        k2old = k2old - k2;
-                        if (k1old + k2old == 0) {
-                            // no trimming
-                            l = i - j1 + 1;
-                            memcpy(b1+b1i,buffer+j1,l);
-                            b1i = b1i + l;
-                        } else {
-                            j1 = j1 + k1old;
-                            l = i - k2old - j1 + 1;
-                            buffer[i-k2old] = '\n';
-                            memcpy(b1+b1i,buffer+j1,l);
-                            b1i = b1i + l;
-                        }
-
-                        flag = 1;
-                        j = 0;
-                        j2 = i + 1;
-                    }
-                }
-            }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
-                j1 = 0;
-                k1= 0;
-                k2 = 0;
-            }
-            
-            
-
-
-        } // while
-
-
-        if (b1i != 0) {
-            fwrite(b1, SIZE_OF_CHAR, b1i, fop);
-        }
-
-        
-        if (is_stdin == 0) {
-            fclose(fip);
-        }
-        if (is_stdout == 0) {
-            fclose(fop);
-        }
-
-        free(buffer);
-        free(b1);
-        
-        return 0;
-    } // end TRIMPOLYACGT   
    
 }
 
