@@ -86,12 +86,12 @@ echo "Test 18"
 ./fastqtk trim-id reads_2.fq reads_2_trim-id.fq
 
 echo "Test 19"
-./fastqtk trim-N reads_1.fq reads_1_trimN.fq
-./fastqtk trim-N reads_2.fq reads_2_trimN.fq
+./fastqtk trim-poly N 1 reads_1.fq reads_1_trimN.fq
+./fastqtk trim-poly N 1 reads_2.fq reads_2_trimN.fq
 
 echo "Test 20"
-./fastqtk trim-polyA 12 reads_1.fq reads_1_trim-polya.fq
-./fastqtk trim-polyA 12 reads_2.fq reads_2_trim-polya.fq
+./fastqtk trim-poly A 12 reads_1.fq reads_1_trim-polya.fq
+./fastqtk trim-poly A 12 reads_2.fq reads_2_trim-polya.fq
 
 echo "Test 21"
 ./fastqtk compress-id @ count_reads_1.txt reads_1.fq reads_1_compressed-ids.fq
@@ -129,6 +129,11 @@ echo "Test 25"
 
 ./fastqtk rev-com reads_1.fq reads_1_revcom.fq
 
+echo "Test 26"
 
-
+./fastqtk trim-poly A 15 poly.fq poly_polyA.fq
+./fastqtk trim-poly C 15 poly.fq poly_polyC.fq
+./fastqtk trim-poly A 1 poly.fq poly_polyA1.fq
+./fastqtk trim-poly ACGT 15 poly.fq poly_polyACGT.fq
+./fastqtk trim-poly N 2 poly.fq poly_N.fq
 
