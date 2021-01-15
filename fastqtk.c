@@ -400,7 +400,7 @@ int main(int argc, char * argv[])
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastqtk  <command>  <arguments>\n");
-        fprintf(stderr, "Version: 0.25\n\n");
+        fprintf(stderr, "Version: 0.27\n\n");
         fprintf(stderr, "Command:\n");
         fprintf(stderr, "      interleave       interleaves two paired-end FASTQ files.\n");
         fprintf(stderr, "      deinterleave     splits an (already) interleaved (paired-end) FASTQ file.\n");
@@ -473,10 +473,8 @@ int main(int argc, char * argv[])
                     return 2;
             }
 
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
 
 
@@ -597,8 +595,8 @@ int main(int argc, char * argv[])
         end2 = 0;
         
         while(1) {
-
-        if (end1 == 1 && end2 == 1) {
+            
+            if (end1 == 1 && end2 == 1) {
                 break;
             }
             ////////////////////////////////////////
@@ -609,12 +607,10 @@ int main(int argc, char * argv[])
                         fprintf(stderr, "ERROR: Failed reading the input file.\n");
                         return 2;
                     }
-                    if (bytes_read1 == 0) { // end of file
-                        if (feof(fi1p)) {
+                    if (bytes_read1 == 0 && feof(fi1p)) {
                             end1 = 1;
                             r1 = 1;
                             continue;
-                        }
                     }
                     if (feof(fi1p)) {
                         if(b1[bytes_read1-1] != '\n') {
@@ -673,12 +669,10 @@ int main(int argc, char * argv[])
                         fprintf(stderr, "ERROR: Failed reading the input file.\n");
                         return 2;
                     }
-                    if (bytes_read2 == 0) { // end of file
-                        if (feof(fi2p)) {
+                    if (bytes_read2 == 0 && feof(fi2p)) {
                             end2 = 1;
                             r1 = 0;
                             continue;
-                        }
                     }
                     if (feof(fi2p)) {
                         if(b2[bytes_read2-1] != '\n') {
@@ -791,10 +785,8 @@ int main(int argc, char * argv[])
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
             
             if (feof(fip)) {
@@ -882,10 +874,8 @@ int main(int argc, char * argv[])
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
             
 
@@ -984,10 +974,8 @@ int main(int argc, char * argv[])
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
             
 
@@ -1019,6 +1007,7 @@ int main(int argc, char * argv[])
                 flag = 0;
                 i = bytes_read - 1;
                 l = i - k - 1;
+                k = 0;
             }
             if (k != 0 && k != 1 && buffer[k-1] == '\r') {
                 windows = 1;
@@ -1100,11 +1089,10 @@ int main(int argc, char * argv[])
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -1186,11 +1174,10 @@ int main(int argc, char * argv[])
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -1268,6 +1255,7 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
@@ -1389,11 +1377,10 @@ int main(int argc, char * argv[])
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -1503,16 +1490,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -1673,16 +1660,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -1845,16 +1832,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -2014,16 +2001,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -2181,18 +2168,21 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
+            
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
-            
+
+
+
             if (feof(fip)) {
+            
                 if(buffer[bytes_read-1] != '\n') {
                     bytes_read = bytes_read + 1;
                     buffer[bytes_read-1] = '\n';
@@ -2201,6 +2191,7 @@ int main(int argc, char * argv[])
                 }
             }
 
+            
             flag = 0;
             for (i=0;i<bytes_read;i++) {
                 flag = 0;
@@ -2208,11 +2199,15 @@ int main(int argc, char * argv[])
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
+
                     } else if (j==2) {
+
                         k2 = i + 1;
                     } else if (j==3) {
+
                         j1 = i + 1;
                     } else if (j==4) {
+
                         // j2 = id start
                         // k1 = seq start
                         // k2= plus start
@@ -2225,7 +2220,7 @@ int main(int argc, char * argv[])
                             fwrite(b1, SIZE_OF_CHAR, b1i, fop);
                             b1i = 0;
                         }
-                        
+
                         //copy id
                         l = k1 - j2;
                         for(x=j2+1;x<k1-1;x++) {
@@ -2235,18 +2230,22 @@ int main(int argc, char * argv[])
                                 break;
                             }
                         }
+
                         memcpy(b1+b1i,buffer+j2,l);
                         b1i = b1i + l;
+
 
                         //copy seq
                         l = k2 - k1;
                         memcpy(b1+b1i,buffer+k1,l);
                         b1i = b1i + l;
 
+
                         //copy +
                         b1[b1i] = '+';
                         b1[b1i+1] = '\n';
                         b1i = b1i + 2;
+
 
                         //copy qual
                         l = i - j1 + 1;
@@ -2262,6 +2261,7 @@ int main(int argc, char * argv[])
             }
             
             if (flag == 0) {
+
                 k = bytes_read - j2;
                 memcpy(buffer,buffer+j2,k);
                 j = 0;
@@ -2269,6 +2269,7 @@ int main(int argc, char * argv[])
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
+
             }
             
             
@@ -2368,16 +2369,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -2650,16 +2651,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -2836,16 +2837,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -3025,16 +3026,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -3177,16 +3178,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
@@ -3338,16 +3339,16 @@ int main(int argc, char * argv[])
             bytes_read = fread(buffer + k, SIZE_OF_CHAR, BUFFER_SIZE - k, fip);
             bytes_read = k + bytes_read;
             k = 0;
+            j2 = 0;
 
             if (ferror(fip)) {
                     fprintf(stderr, "ERROR: Failed reading the input file.\n");
                     return 2;
             }
-            if (bytes_read == 0) { // end of file?
-                if (feof(fip)) {
+            if (bytes_read == 0 && feof(fip)) {
                     break;
-                }
             }
+
             
             if (feof(fip)) {
                 if(buffer[bytes_read-1] != '\n') {
