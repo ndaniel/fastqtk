@@ -98,7 +98,7 @@ void nextid(void) {
             }
         }
         if ((flag == 1) && (COUNTER[1] == CARS[0])) {
-            fprintf(stderr,"ERROR: Counter too small (%s)!",COUNTER);
+            fprintf(stderr,"ERROR: Counter too small!");
             exit(2);
         }
     }
