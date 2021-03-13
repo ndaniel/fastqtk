@@ -56,6 +56,7 @@ void nextid(void) {
     int n;
     char x;
     int i;
+    char flag;
     
     if(COUNTER[0]!='@') {
         // first call -- initialize 
@@ -83,9 +84,9 @@ void nextid(void) {
         }
         COUNTER[0] = (int) '@';
     } else {
+        flag = 0;
         if (COUNTER[1] == CARS[CARS_LEN-1]) {
-            fprintf(stderr,"ERROR: Counter too small!");
-            exit(2);
+            flag = 1;
         }
         for (i=DIGITS;i>0;i--) {
             x = toCARS[(int)COUNTER[i]];
@@ -96,7 +97,10 @@ void nextid(void) {
                 break;
             }
         }
-
+        if ((flag == 1) && (COUNTER[1] == CARS[0])) {
+            fprintf(stderr,"ERROR: Counter too small (%s)!",COUNTER);
+            exit(2);
+        }
     }
 
 }
@@ -2605,7 +2609,7 @@ int main(int argc, char * argv[])
         
         DIGITS = (char) (ceil(log10(N+1) / log10(CARS_LEN)));
         if (interleaved == 1) {
-            DIGITS = (char) (ceil((log10(N) - log10(2))/ log10(CARS_LEN)));
+            DIGITS = (char) (ceil((log10(N+1) - log10(2))/ log10(CARS_LEN)));
         }
 
         // input FASTQ
