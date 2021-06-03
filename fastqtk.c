@@ -30,6 +30,7 @@
 
 
 #define BUFFER_SIZE  32 * 1024 * 1024
+//define BUFFER_SIZE  32 * 1024 * 1024
 //#define BUFFER_SIZE   3731
 
 //maximum length of reads
@@ -40,6 +41,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 const char CARS[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const int CARS_LEN = strlen(CARS);
+const char newline = '\n';
 
 char toCARS[256];
 
@@ -98,9 +100,11 @@ void nextid(void) {
             }
         }
         if ((flag == 1) && (COUNTER[1] == CARS[0])) {
-            fprintf(stderr,"ERROR: Counter too small!");
+            fprintf(stderr,"ERROR: Counter too small (%s)!",COUNTER);
             exit(2);
         }
+
+
     }
 
 }
@@ -332,14 +336,14 @@ int main(int argc, char * argv[])
                 usage = 17;
             }
         } else if (strcmp(argv[1],"compress-id") == 0) {
-            if (!(argc == 6 || argc == 5)) {
+            if (!(argc == 6 || argc == 5 || argc == 4)) {
                 fprintf(stderr, "\n");
-                fprintf(stderr, "Usage:   fastqtk  compress-id  [@|@@|/1|_1|/2|_2|/12|_12]  <N|counts.txt>  <in.fq>  <out.fq>\n\n");
+                fprintf(stderr, "Usage:   fastqtk  compress-id  [@|@@|/1|_1|/2|_2|/12|_12]  [N|counts.txt]  <in.fq>  <out.fq>\n\n");
                 fprintf(stderr, "It does lossy compression on the reads ids from a FASTQ file.\n");
                 fprintf(stderr, "For redirecting to STDOUT/STDIN use - instead of file name.\n\n");
                 fprintf(stderr, "Options:\n");
                 fprintf(stderr, "     *  N|counts.txt  (count reads; if here is a dot then it is considered that a file has been given):\n");
-                fprintf(stderr, "               N             - number of reads  in the input FASTQ file (or a much larger number). N is an positive integer.\n");
+                fprintf(stderr, "               N             - number of reads in the input FASTQ file (or a much larger number). [500000].\n");
                 fprintf(stderr, "               counts.txt    - file that contains number of reads in the input FASTQ file <in.fq>, that was generated\n");
                 fprintf(stderr, "                               using 'fastqtk count in.fq counts.txt' beforehand.\n");
                 fprintf(stderr, "     *  @|@@|/1|_1|/2|_2|/12|_12  (settings for generating reads ids):\n");
@@ -404,7 +408,7 @@ int main(int argc, char * argv[])
     if (usage == 1) {
         fprintf(stderr, "\n");
         fprintf(stderr, "Usage:   fastqtk  <command>  <arguments>\n");
-        fprintf(stderr, "Version: 0.27\n\n");
+        fprintf(stderr, "Version: 0.28\n\n");
         fprintf(stderr, "Command:\n");
         fprintf(stderr, "      interleave       interleaves two paired-end FASTQ files.\n");
         fprintf(stderr, "      deinterleave     splits an (already) interleaved (paired-end) FASTQ file.\n");
@@ -2546,6 +2550,7 @@ int main(int argc, char * argv[])
     if (usage == 19) {
 
         long long int N = 0;
+        long long int N_default = 500000;
         char line[50];
         char interleaved = 0;
         char slash = 0;
@@ -2577,31 +2582,65 @@ int main(int argc, char * argv[])
             }
             shift = 0;
         } else if (argc==5){
+            if (strcmp(argv[2],"@@") == 0 || strcmp(argv[2],"/12") == 0 || strcmp(argv[2],"_12" ) == 0 || strcmp(argv[2],"/1") == 0 || strcmp(argv[2],"/2") == 0 || strcmp(argv[2],"/12") == 0 || strcmp(argv[2],"_1") == 0 || strcmp(argv[2],"_2") == 0 || strcmp(argv[2],"_12") == 0) {
+                if (strcmp(argv[2],"@@") == 0 || strcmp(argv[2],"/12") == 0 || strcmp(argv[2],"_12") == 0) {
+                    interleaved = 1;
+                    flag = 1;
+                }
+                if (strcmp(argv[2],"/1") == 0 || strcmp(argv[2],"/2") == 0 || strcmp(argv[2],"/12") == 0 || strcmp(argv[2],"_1") == 0 || strcmp(argv[2],"_2") == 0 || strcmp(argv[2],"_12") == 0) {
+                    slash = 1;
+                    flag = 1;
+                }
+                if (strcmp(argv[2],"@") == 0) {
+                    slash = 0;
+                    interleaved = 0;
+                    flag = 1;
+                }
+
+                if (slash == 1) {
+                    EXTRA[0] = argv[2][0];
+                    EXTRA[1] = argv[2][1];
+                    EXTRA[2] = 10;
+                    EXTRA[3] = 0;
+                }
+                shift = 1;
+                N = N_default;
+            } else {
+                slash = 0;
+                interleaved = 0;
+                flag = 1;
+            }
+            shift = 1;
+        } else if (argc==4) {
+            N = N_default;
             slash = 0;
             interleaved = 0;
             flag = 1;
-            shift = 1;
+            shift = 2;
         }
-        
+
+
         if (flag == 0) {
             fprintf(stderr, "ERROR: Something wrong with command line options!\n");
             return 2;
         }
 
         // get counts
-        char *p = strchr(argv[3-shift], '.');
-        if (p == NULL) {
-            // it is not a file
-            N = atoi(argv[3-shift]);
-        } else {
-            // it is a file and then read it from the file
-            fip = myfopen(argv[3-shift],"r");
-            if (fgets(line, sizeof(line), fip) ){
-                N = atoi(line);
-            }
-            fclose(fip);
-        }
         if (N==0) {
+            char *p = strchr(argv[3-shift], '.');
+            if (p == NULL) {
+                // it is not a file
+                N = atoi(argv[3-shift]);
+            } else {
+                // it is a file and then read it from the file
+                fip = myfopen(argv[3-shift],"r");
+                if (fgets(line, sizeof(line), fip) ){
+                    N = atoi(line);
+                }
+                fclose(fip);
+            }
+        } 
+        if (N<1) {
             fprintf(stderr, "ERROR: Wrong number of reads!\n");
             return 2;
         }
@@ -2611,6 +2650,7 @@ int main(int argc, char * argv[])
         if (interleaved == 1) {
             DIGITS = (char) (ceil((log10(N+1) - log10(2))/ log10(CARS_LEN)));
         }
+        //fprintf(stderr,"DIGITS %d for N %lld\n",DIGITS,N);
 
         // input FASTQ
         is_stdin = 0;
