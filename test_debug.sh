@@ -97,6 +97,7 @@ echo "Test 21"
 ./fastqtk compress-id @ count_reads_1.txt reads_1.fq reads_1_compressed-ids.fq
 ./fastqtk compress-id count_reads_1.txt reads_1.fq reads_1_compressed-ids_.fq
 ./fastqtk compress-id 200000000 reads_1.fq reads_1_compressed-ids__.fq
+./fastqtk compress-id reads_1.fq reads_1_compressed-ids___.fq
 ./fastqtk compress-id /1 count_reads_1.txt reads_1.fq reads_1_compressed-ids-1.fq
 ./fastqtk compress-id /2 count_reads_1.txt reads_2.fq reads_2_compressed-ids-2.fq
 ./fastqtk compress-id _1 count_reads_1.txt reads_1.fq reads_1_compressed-ids-1_.fq
