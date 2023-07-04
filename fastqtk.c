@@ -2923,7 +2923,6 @@ int main(int argc, char * argv[])
                             l = k1 - j2;
                             for(x=j2+1;x<k1-1;x++) {
                                 if(buffer[x]==' ') {
-                                    buffer[x] = '\n';
                                     l = x + 1 - j2;
                                     break;
                                 }
@@ -2951,13 +2950,6 @@ int main(int argc, char * argv[])
 
                         //copy id
                         l = k1 - j2;
-                        for(x=j2+1;x<k1-1;x++) {
-                            if(buffer[x]==' ') {
-                                buffer[x] = '\n';
-                                l = x + 1 - j2;
-                                break;
-                            }
-                        }
                         memcpy(b1+b1i,buffer+j2,l);
                         b1i = b1i + l;
                         //save positions of read id in b1
