@@ -1,0 +1,39 @@
+name: fastqtk Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up build environment
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Build fastqtk
+        run: |
+          make clean
+          make
+
+      - name: Run tests
+        run: bash test.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload binary to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: fastqtk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
