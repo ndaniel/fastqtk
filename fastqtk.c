@@ -896,9 +896,16 @@ int main(int argc, char * argv[])
                         flag = 1;
                     } else if (j==4) {
                         l = l + i - k - 1;
-                        if (l < MAX_LEN && l - 1 > 0) {
+                        if (l < MAX_LEN && l > 0) {
                             len[l] = 1;
-                        } else {
+                        } 
+			else if (l <= 0)
+			{
+			    fprintf(stderr, "Each read ID must be at least 1 bp in length.\n");
+                            free(buffer);
+                            return 2;
+			}
+			else {
                             fprintf(stderr, "ERROR: Too long read sequence found. Maximum length of supported reads is %d.\n",MAX_LEN);
                             free(buffer);
                             return 2;
