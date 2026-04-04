@@ -29,7 +29,7 @@
 #include <math.h>
 
 
-#define BUFFER_SIZE  32 * 1024 * 1024
+#define BUFFER_SIZE  8 * 1024 * 1024
 //define BUFFER_SIZE  32 * 1024 * 1024
 //#define BUFFER_SIZE   3731
 
@@ -115,6 +115,9 @@ FILE* myfopen(char* filename, char* mode) {
     if (ptr == NULL) {
         fprintf(stderr, "ERROR: Failed to open the file '%s'!\n",filename);
         exit(2);
+    }
+    if (mode[0] == 'w') {
+        setvbuf(ptr, NULL, _IOFBF, BUFFER_SIZE);
     }
     return ptr;
 }
@@ -496,39 +499,38 @@ int main(int argc, char * argv[])
             }
 
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
-                    j = j + 1;
-                    if (j==4) {
-                        if (r1==0) {
-                            l = i - k + 1;
-                            memcpy(b1+b1i,buffer+k,l);
-                            b1i = b1i + l;
+            {
+                char *p = buffer;
+                char *end = buffer + bytes_read;
+                char *nl;
+                while ((nl = memchr(p, '\n', end - p)) != NULL) {
+                    j++;
+                    if (j == 4) {
+                        l = nl - (buffer + k) + 1;
+                        if (r1 == 0) {
+                            memcpy(b1 + b1i, buffer + k, l);
+                            b1i += l;
                             r1 = 1;
                         } else {
-                            l = i - k + 1;
-                            memcpy(b2+b2i,buffer+k,l);
-                            b2i = b2i + l;
+                            memcpy(b2 + b2i, buffer + k, l);
+                            b2i += l;
                             r1 = 0;
                         }
                         j = 0;
-                        k = i + 1;
+                        k = nl - buffer + 1;
                     }
+                    p = nl + 1;
                 }
-            }
-
-            if (flag == 0) {
-                i = bytes_read - 1;
-                if(r1 == 0){
-                    l = i - k + 1;
-                    memcpy(b1+b1i,buffer+k,l);
-                    b1i = b1i + l;
-                } else {
-                    l = i - k + 1;
-                    memcpy(b2+b2i,buffer+k,l);
-                    b2i = b2i + l;
+                /* copy remaining partial read at end of buffer */
+                if (k < bytes_read) {
+                    l = bytes_read - k;
+                    if (r1 == 0) {
+                        memcpy(b1 + b1i, buffer + k, l);
+                        b1i += l;
+                    } else {
+                        memcpy(b2 + b2i, buffer + k, l);
+                        b2i += l;
+                    }
                 }
             }
             
@@ -630,18 +632,19 @@ int main(int argc, char * argv[])
                     }
                 }
 
-                flag = 0;
-                for (i=k1;i<bytes_read1;i++) {
+                {
+                    char *_p = b1 + k1, *_end = b1 + bytes_read1, *_nl;
                     flag = 0;
-                    if (b1[i] == '\n') {
-                        j1 = j1 + 1;
+                    while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                        j1++;
                         if (j1==4) {
                             flag = 1;
                             j1 = 0;
                             k1old = k1;
-                            k1 = i + 1;
+                            k1 = (size_t)(_nl - b1) + 1;
                             break;
                         }
+                        _p = _nl + 1;
                     }
                 }
 
@@ -692,18 +695,19 @@ int main(int argc, char * argv[])
                     }
                 }
 
-                flag = 0;
-                for (i=k2;i<bytes_read2;i++) {
+                {
+                    char *_p = b2 + k2, *_end = b2 + bytes_read2, *_nl;
                     flag = 0;
-                    if (b2[i] == '\n') {
-                        j2 = j2 + 1;
+                    while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                        j2++;
                         if (j2==4) {
                             flag = 1;
                             j2 = 0;
                             k2old = k2;
-                            k2 = i + 1;
+                            k2 = (size_t)(_nl - b2) + 1;
                             break;
                         }
+                        _p = _nl + 1;
                     }
                 }
 
@@ -806,9 +810,12 @@ int main(int argc, char * argv[])
                 }
             }
 
-            for (i=0;i<bytes_read;i++) {
-                if (buffer[i] == '\n') {
-                    u = u + 1;
+            {
+                char *p = buffer;
+                char *end = buffer + bytes_read;
+                while ((p = memchr(p, '\n', end - p)) != NULL) {
+                    u++;
+                    p++;
                 }
             }
         }
@@ -887,9 +894,11 @@ int main(int argc, char * argv[])
             }
             
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                flag = 0;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==3) {
                         k = i;
@@ -898,14 +907,11 @@ int main(int argc, char * argv[])
                         l = l + i - k - 1;
                         if (l < MAX_LEN && l > 0) {
                             len[l] = 1;
-                        } 
-			else if (l <= 0)
-			{
-			    fprintf(stderr, "Each read ID must be at least 1 bp in length.\n");
+                        } else if (l <= 0) {
+                            fprintf(stderr, "Each read ID must be at least 1 bp in length.\n");
                             free(buffer);
                             return 2;
-			}
-			else {
+                        } else {
                             fprintf(stderr, "ERROR: Too long read sequence found. Maximum length of supported reads is %d.\n",MAX_LEN);
                             free(buffer);
                             return 2;
@@ -914,6 +920,7 @@ int main(int argc, char * argv[])
                         l = 0;
                         flag = 0;
                     }
+                    _p = _nl + 1;
                 }
             }
             if (flag == 1) {
@@ -994,9 +1001,11 @@ int main(int argc, char * argv[])
             }
             
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                flag = 0;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     u = u + 1;
                     if (j==3) {
@@ -1015,9 +1024,9 @@ int main(int argc, char * argv[])
                         l = 0;
                         flag = 0;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
             if (flag == 1) {
                 flag = 0;
                 i = bytes_read - 1;
@@ -1118,14 +1127,13 @@ int main(int argc, char * argv[])
                 }
             }
 
-            for (i=0;i<bytes_read;i++) {
-                if (buffer[i] == '\n') {
-                    j = j + 1;
-                    if (j==r1) {
-                        j = 0;
-                    } else {
-                        buffer[i] = '\t';
-                    }
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    j++;
+                    if (j==r1) { j = 0; }
+                    else { *_nl = '\t'; }
+                    _p = _nl + 1;
                 }
             }
             
@@ -1203,9 +1211,11 @@ int main(int argc, char * argv[])
                 }
             }
 
-            for (i=0;i<bytes_read;i++) {
-                if (buffer[i] == '\t') {
-                    buffer[i] = '\n';
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_tab;
+                while ((_tab = memchr(_p, '\t', _end - _p)) != NULL) {
+                    *_tab = '\n';
+                    _p = _tab + 1;
                 }
             }
             fwrite(buffer, SIZE_OF_CHAR, bytes_read, fop);
@@ -1291,10 +1301,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -1311,19 +1321,18 @@ int main(int argc, char * argv[])
                             b1i = b1i + l;
                         }
                         // (j2,i) = entire read - id, seq, +, qual
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
             }
+            j = 0;
+            j2 = 0;
             
             
 
@@ -1407,31 +1416,34 @@ int main(int argc, char * argv[])
             }
 
 
-            for (i=0;i<bytes_read;i++) {
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k = i + 1;
                         flag = 1;
                     } else if (j==2) {
                         flag = 0;
-                        for (l=k;l<i;l++) {
-                            if (buffer[l]=='N') {
-                                buffer[l]='A';
-                            }
+                        char *_s = buffer + k, *_se = buffer + i, *_n;
+                        while ((_n = memchr(_s, 'N', _se - _s)) != NULL) {
+                            *_n = 'A';
+                            _s = _n + 1;
                         }
                     } else if (j==4) {
                         j = 0;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
             if (flag == 1) {
                 flag = 0;
-                i = bytes_read;
-                for (l=k;l<i;l++) {
-                    if (buffer[l]=='N') {
-                        buffer[l]='A';
+                {
+                    char *_s = buffer + k, *_se = buffer + bytes_read, *_n;
+                    while ((_n = memchr(_s, 'N', _se - _s)) != NULL) {
+                        *_n = 'A';
+                        _s = _n + 1;
                     }
                 }
                 k = 0;
@@ -1525,10 +1537,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -1585,24 +1597,21 @@ int main(int argc, char * argv[])
                             b1i = b1i + 2;
                         }
 
-
-
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
-                j1 = 0;
-                k1= 0;
-                k2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
             }
+            j = 0;
+            j2 = 0;
+            j1 = 0;
+            k1 = 0;
+            k2 = 0;
             
             
 
@@ -1695,10 +1704,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -1760,22 +1769,22 @@ int main(int argc, char * argv[])
 
 
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
-            }
+
             
             
 
@@ -1867,10 +1876,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -1929,22 +1938,22 @@ int main(int argc, char * argv[])
 
 
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
-            }
+
             
             
 
@@ -2036,10 +2045,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -2096,22 +2105,22 @@ int main(int argc, char * argv[])
 
 
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
-            }
+
             
             
 
@@ -2207,10 +2216,10 @@ int main(int argc, char * argv[])
             }
 
             
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -2268,24 +2277,23 @@ int main(int argc, char * argv[])
                         b1i = b1i + l;
 
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
 
-            }
+
             
             
 
@@ -2404,10 +2412,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -2507,22 +2515,22 @@ int main(int argc, char * argv[])
                             }
                         }
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
-            }
+
             
             
 
@@ -2722,10 +2730,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -2790,22 +2798,22 @@ int main(int argc, char * argv[])
                         b1i = b1i + l;
 
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
-            }
+
             
             
 
@@ -2909,10 +2917,10 @@ int main(int argc, char * argv[])
             }
 
             //still it needs work
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -2977,22 +2985,22 @@ int main(int argc, char * argv[])
                             }
                         }
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
 //                j1 = 0;
                 k1= 0;
 //                k2 = 0;
-            }
+
             
             
 
@@ -3089,10 +3097,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -3134,22 +3142,22 @@ int main(int argc, char * argv[])
                         b1i = b1i + l;
 
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
-            }
+
             
             
 
@@ -3241,10 +3249,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -3289,23 +3297,21 @@ int main(int argc, char * argv[])
                         b1i = b1i + l;
                         b1[b1i-1] = '\n';
 
-
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
-                j1 = 0;
-                k1= 0;
-                k2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
             }
+            j = 0;
+            j2 = 0;
+            j1 = 0;
+            k1 = 0;
+            k2 = 0;
             
             
 
@@ -3402,10 +3408,10 @@ int main(int argc, char * argv[])
                 }
             }
 
-            flag = 0;
-            for (i=0;i<bytes_read;i++) {
-                flag = 0;
-                if (buffer[i] == '\n') {
+            {
+                char *_p = buffer, *_end = buffer + bytes_read, *_nl;
+                while ((_nl = memchr(_p, '\n', _end - _p)) != NULL) {
+                    i = (size_t)(_nl - buffer);
                     j = j + 1;
                     if (j==1) {
                         k1 = i + 1;
@@ -3510,22 +3516,22 @@ int main(int argc, char * argv[])
                         }
                         b1i = b1i + l;
 
-                        flag = 1;
                         j = 0;
                         j2 = i + 1;
                     }
+                    _p = _nl + 1;
                 }
             }
-            
-            if (flag == 0) {
-                k = bytes_read - j2;
-                memcpy(buffer,buffer+j2,k);
-                j = 0;
-                j2 = 0;
+            k = bytes_read - j2;
+            if (k > 0) {
+                memmove(buffer, buffer + j2, k);
+            }
+            j = 0;
+            j2 = 0;
                 j1 = 0;
                 k1= 0;
                 k2 = 0;
-            }
+
             
             
 
