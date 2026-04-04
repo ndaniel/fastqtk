@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -Wall -O3 -march=native -Wno-unused-function
+CFLAGS=-g -Wall -O3 -march=native -flto -Wno-unused-function
 
 all:fastqtk
 

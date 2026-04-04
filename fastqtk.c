@@ -134,6 +134,16 @@ char* mymalloc(size_t n)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+static void check_partial_record_fits_buffer(size_t n)
+{
+    if (n < BUFFER_SIZE) {
+        return;
+    }
+    fprintf(stderr, "ERROR: FASTQ record exceeds internal buffer size (%d bytes).\n", BUFFER_SIZE);
+    exit(2);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char * argv[])
@@ -1328,6 +1338,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -1604,6 +1615,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -1776,6 +1788,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -1945,6 +1958,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -2112,6 +2126,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -2284,6 +2299,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -2522,6 +2538,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -2805,6 +2822,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -2992,6 +3010,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -3149,6 +3168,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -3304,6 +3324,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -3523,6 +3544,7 @@ int main(int argc, char * argv[])
                 }
             }
             k = bytes_read - j2;
+            check_partial_record_fits_buffer(k);
             if (k > 0) {
                 memmove(buffer, buffer + j2, k);
             }
@@ -3559,7 +3581,6 @@ int main(int argc, char * argv[])
 
    
 }
-
 
 
 
