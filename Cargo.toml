@@ -1,0 +1,16 @@
+[package]
+name = "fastqtk"
+version = "0.29.0"
+edition = "2021"
+license = "MIT"
+description = "Fast, lightweight FASTQ transformations"
+
+[[bin]]
+name = "fastqtk"
+path = "fastqtk.rs"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

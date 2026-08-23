@@ -6,6 +6,22 @@ FASTQ tools
 Installation
 ------------
 
+### Rust implementation (recommended)
+
+The Rust implementation is dependency-free and keeps the original C source
+unchanged. Build the speed-optimized release binary with:
+
+```
+cargo build --release
+./target/release/fastqtk
+```
+
+The release profile enables fat LTO, a single code-generation unit, stripped
+symbols, and abort-on-panic. FASTQ data is processed as raw bytes using large
+buffered streams; record buffers are reused rather than allocated per read.
+
+### Legacy C implementation
+
 ```
 git clone https://github.com/ndaniel/fastqtk.git
 cd fastqtk
